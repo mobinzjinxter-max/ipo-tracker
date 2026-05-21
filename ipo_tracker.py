@@ -116,13 +116,15 @@ def send_push(title: str, body: str, alert_type: str = "info") -> bool:
         webpush(
             subscription_info=sub,
             data=json.dumps({"title": title, "body": body, "type": alert_type}),
-            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_private_key=VAPID_PRIVATE_KEY,   # raw base64url EC key
             vapid_claims={"sub": "mailto:ipo-tracker@gmail.com"},
         )
         log(f"Push sent: {title}")
         return True
     except Exception as e:
         log(f"Push error: {e}")
+        if hasattr(e, "response") and e.response:
+            log(f"Push response: {e.response.text[:200]}")
         return False
 
 # ── SEC EDGAR ──────────────────────────────────────────────────────────────────
