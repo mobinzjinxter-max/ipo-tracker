@@ -12,62 +12,77 @@
   <title>IPO & Stock Tracker</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --border:    #30363d;
-      --green:     #3fb950;
-      --yellow:    #d29922;
-      --blue:      #58a6ff;
-      --red:       #f85149;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --radius:    14px;
+      --bg:      #0d1117; --surface: #161b22; --border: #30363d;
+      --green:   #3fb950; --yellow:  #d29922; --blue:   #58a6ff;
+      --red:     #f85149; --text:    #e6edf3; --muted:  #8b949e;
+      --radius:  14px;
     }
-
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
       min-height: 100vh;
     }
 
     /* ── Header ── */
     header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: rgba(13,17,23,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(13,17,23,0.88);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       padding: calc(env(safe-area-inset-top) + 14px) 18px 14px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .header-title { font-size: 18px; font-weight: 700; }
+    .header-title  { font-size: 18px; font-weight: 700; }
     .header-title span { color: var(--green); }
-    .refresh-btn {
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
       background: none; border: 1px solid var(--border);
       color: var(--muted); border-radius: 8px;
-      padding: 6px 12px; font-size: 13px; cursor: pointer;
-      display: flex; align-items: center; gap: 5px;
+      padding: 6px 11px; font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; white-space: nowrap;
     }
-    .refresh-btn:active { opacity: 0.6; }
+    .icon-btn:active { opacity: 0.6; }
+    .icon-btn.active { border-color: var(--green); color: var(--green); }
     .spin { animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Bell banner ── */
+    #bell-banner {
+      background: rgba(88,166,255,0.1); border-bottom: 1px solid rgba(88,166,255,0.2);
+      padding: 10px 18px; font-size: 13px; color: var(--blue);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #bell-banner button {
+      background: var(--blue); color: #000;
+      border: none; border-radius: 8px;
+      padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+
+    /* ── Sub display for subscription copy ── */
+    #sub-box {
+      background: var(--surface); border: 1px solid var(--border);
+      margin: 12px 16px; border-radius: var(--radius);
+      padding: 12px; font-size: 11px; display: none;
+    }
+    #sub-box p { color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+    #sub-json {
+      background: var(--bg); border-radius: 8px; padding: 8px;
+      font-family: monospace; font-size: 10px; color: var(--green);
+      word-break: break-all; max-height: 80px; overflow-y: auto;
+      margin-bottom: 8px;
+    }
+    #copy-btn {
+      background: var(--green); color: #000; border: none;
+      border-radius: 8px; padding: 7px 14px;
+      font-size: 12px; font-weight: 700; cursor: pointer; width: 100%;
+    }
+
     /* ── Tabs ── */
     .tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky;
-      top: 58px;
-      z-index: 9;
+      display: flex; border-bottom: 1px solid var(--border);
+      background: var(--bg); position: sticky; top: 57px; z-index: 9;
     }
     .tab {
       flex: 1; padding: 12px 4px; text-align: center;
@@ -77,9 +92,8 @@
     }
     .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
     .badge {
-      display: inline-block; background: var(--red);
-      color: #fff; border-radius: 10px;
-      font-size: 10px; font-weight: 700;
+      display: inline-block; background: var(--red); color: #fff;
+      border-radius: 10px; font-size: 10px; font-weight: 700;
       padding: 1px 5px; margin-left: 4px; vertical-align: middle;
     }
 
@@ -89,289 +103,328 @@
 
     /* ── Cards ── */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
     }
     .card-header {
       display: flex; justify-content: space-between;
-      align-items: flex-start; margin-bottom: 10px;
+      align-items: flex-start; margin-bottom: 8px;
     }
     .company-name { font-size: 16px; font-weight: 700; }
     .ticker-badge {
       background: rgba(88,166,255,0.15); color: var(--blue);
-      border-radius: 6px; padding: 2px 8px; font-size: 12px;
-      font-weight: 700; white-space: nowrap;
+      border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700;
     }
     .card-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-
-    /* IPO card */
     .ipo-pill {
-      display: inline-block;
-      background: rgba(63,185,80,0.15); color: var(--green);
-      border-radius: 20px; padding: 4px 12px;
-      font-size: 12px; font-weight: 600;
+      display: inline-block; background: rgba(63,185,80,0.15);
+      color: var(--green); border-radius: 20px;
+      padding: 4px 12px; font-size: 12px; font-weight: 600;
     }
     .ipo-link {
       display: block; margin-top: 10px;
       color: var(--blue); font-size: 13px; text-decoration: none;
     }
-    .ipo-link:active { opacity: 0.7; }
-
-    /* Buy signal card */
-    .price-row {
-      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;
-    }
+    .price-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .stat {
-      background: rgba(255,255,255,0.05);
-      border-radius: 8px; padding: 6px 10px; flex: 1; min-width: 70px;
+      background: rgba(255,255,255,0.05); border-radius: 8px;
+      padding: 6px 10px; flex: 1; min-width: 60px;
     }
     .stat-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
     .stat-value { font-size: 15px; font-weight: 700; }
     .positive { color: var(--green); }
     .negative { color: var(--red); }
     .signal-tag {
-      display: inline-block;
-      background: rgba(210,153,34,0.15); color: var(--yellow);
-      border-radius: 6px; padding: 3px 8px; font-size: 11px;
-      font-weight: 600; margin: 3px 3px 0 0;
+      display: inline-block; border-radius: 6px;
+      padding: 3px 8px; font-size: 11px; font-weight: 600; margin: 3px 3px 0 0;
     }
-    .signal-tag.volume { background: rgba(248,81,73,0.15); color: #ff7b72; }
-    .signal-tag.rsi    { background: rgba(88,166,255,0.15); color: var(--blue); }
-    .signal-tag.golden { background: rgba(210,153,34,0.15); color: var(--yellow); }
+    .sig-vol    { background: rgba(248,81,73,0.15);  color: #ff7b72; }
+    .sig-rsi    { background: rgba(88,166,255,0.15); color: var(--blue); }
+    .sig-golden { background: rgba(210,153,34,0.15); color: var(--yellow); }
 
-    /* Watchlist */
+    /* ── Watchlist ── */
     .watch-section { margin-bottom: 20px; }
     .watch-section h3 {
-      font-size: 13px; text-transform: uppercase;
-      letter-spacing: .08em; color: var(--muted);
-      margin-bottom: 10px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin-bottom: 10px;
     }
-    .watch-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-    }
+    .watch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .watch-item {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 12px;
-      font-size: 13px; font-weight: 500;
+      border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 500;
     }
     .watch-item .wt { font-size: 11px; color: var(--blue); margin-top: 2px; }
 
-    /* Empty state */
+    /* ── Empty state ── */
     .empty {
       text-align: center; padding: 48px 24px;
-      color: var(--muted); font-size: 14px;
+      color: var(--muted); font-size: 14px; line-height: 1.6;
     }
     .empty-icon { font-size: 36px; margin-bottom: 10px; }
 
-    /* Status bar */
+    /* ── Status bar ── */
     .status-bar {
-      text-align: center; font-size: 11px;
-      color: var(--muted); padding: 8px;
-      border-top: 1px solid var(--border);
+      text-align: center; font-size: 11px; color: var(--muted);
+      padding: 8px; border-top: 1px solid var(--border);
     }
-    .dot { display: inline-block; width: 7px; height: 7px;
-      border-radius: 50%; background: var(--green); margin-right: 5px;
+    .dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); margin-right: 5px;
       animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%,100% { opacity:1; } 50% { opacity:.3; }
-    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   </style>
 </head>
 <body>
 
+<!-- Hidden audio element for the boeingboeing alert sound -->
+<audio id="alert-audio" src="alert.mp3" preload="auto"></audio>
+
 <header>
   <div class="header-title">📊 IPO &amp; <span>Stock</span> Tracker</div>
-  <button class="refresh-btn" onclick="loadData()">
-    <span id="refresh-icon">↻</span> Refresh
-  </button>
+  <div class="header-actions">
+    <button class="icon-btn" id="bell-btn" onclick="toggleNotifications()">🔔 Alerts</button>
+    <button class="icon-btn" onclick="loadData()"><span id="ri">↻</span></button>
+  </div>
 </header>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('ipo')">
-    🟢 IPO Alerts <span id="ipo-badge"></span>
-  </div>
-  <div class="tab" onclick="switchTab('signals')">
-    📈 Buy Signals <span id="sig-badge"></span>
-  </div>
-  <div class="tab" onclick="switchTab('watchlist')">
-    👁 Watchlist
-  </div>
+<!-- Bell setup banner (shown when notifications not yet enabled) -->
+<div id="bell-banner" style="display:none">
+  <span>Enable push notifications to get alerted instantly</span>
+  <button onclick="enableNotifications()">Enable</button>
 </div>
 
-<div id="panel-ipo"      class="panel active"></div>
-<div id="panel-signals"  class="panel"></div>
+<!-- Subscription copy box (shown after subscribing) -->
+<div id="sub-box">
+  <p>📋 <strong>One-time setup:</strong> Copy this JSON and send it to Claude so push notifications can reach your phone.</p>
+  <div id="sub-json"></div>
+  <button id="copy-btn" onclick="copySubJSON()">📋 Copy Subscription JSON</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('ipo')">🟢 IPO Alerts<span id="ipo-badge"></span></div>
+  <div class="tab"        onclick="switchTab('signals')">📈 Buy Signals<span id="sig-badge"></span></div>
+  <div class="tab"        onclick="switchTab('watchlist')">👁 Watchlist</div>
+</div>
+
+<div id="panel-ipo"       class="panel active"></div>
+<div id="panel-signals"   class="panel"></div>
 <div id="panel-watchlist" class="panel"></div>
 
 <div class="status-bar" id="status-bar">Loading...</div>
 
 <script>
-const DATA_URL = 'alerts.json?t=' + Date.now();
+// ── VAPID public key ──────────────────────────────────────────────────────────
+const VAPID_PUBLIC_KEY = 'BBojiGk0fn_rVfLh0lbIicFyVhuQbzJ_DaCIOEJNd8c13lGUp75axP62DpHIsy-KOplwvIfmrKN6Wd4m4n_DvZk';
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+const audio = document.getElementById('alert-audio');
+function playAlertSound() {
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
+
+// If app was opened by tapping a notification (?notify=1) → play sound
+if (new URLSearchParams(location.search).get('notify') === '1') {
+  window.addEventListener('load', () => setTimeout(playAlertSound, 300));
+}
+
+// ── Service Worker registration ───────────────────────────────────────────────
+let swReg = null;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    swReg = reg;
+    checkBellBanner();
+  });
+
+  // Listen for "PLAY_SOUND" from service worker (notification tap while app open)
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'PLAY_SOUND') playAlertSound();
+  });
+}
+
+// ── Push notification helpers ─────────────────────────────────────────────────
+function urlB64ToUint8Array(b64) {
+  const pad  = '='.repeat((4 - b64.length % 4) % 4);
+  const raw  = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function checkBellBanner() {
+  if (!('Notification' in window) || !swReg) return;
+  const perm = Notification.permission;
+  if (perm === 'default') {
+    document.getElementById('bell-banner').style.display = 'flex';
+  } else if (perm === 'granted') {
+    document.getElementById('bell-btn').classList.add('active');
+    document.getElementById('bell-btn').textContent = '🔔 On';
+  }
+}
+
+async function enableNotifications() {
+  if (!swReg) return alert('Service worker not ready — try again in a moment.');
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') return alert('Permission denied. Enable in Settings > Safari > Notifications.');
+
+  const sub = await swReg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY),
+  });
+
+  document.getElementById('bell-banner').style.display = 'none';
+  document.getElementById('bell-btn').classList.add('active');
+  document.getElementById('bell-btn').textContent = '🔔 On';
+
+  // Show subscription JSON for one-time copy
+  const subJSON = JSON.stringify(sub.toJSON(), null, 2);
+  document.getElementById('sub-json').textContent = subJSON;
+  document.getElementById('sub-box').style.display = 'block';
+  localStorage.setItem('push_sub', subJSON);
+}
+
+function toggleNotifications() {
+  const box = document.getElementById('sub-box');
+  if (box.style.display === 'block') {
+    box.style.display = 'none';
+  } else if (localStorage.getItem('push_sub')) {
+    document.getElementById('sub-json').textContent = localStorage.getItem('push_sub');
+    box.style.display = 'block';
+  } else {
+    enableNotifications();
+  }
+}
+
+function copySubJSON() {
+  const txt = document.getElementById('sub-json').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    document.getElementById('copy-btn').textContent = '✅ Copied! Send this to Claude.';
+    setTimeout(() => {
+      document.getElementById('copy-btn').textContent = '📋 Copy Subscription JSON';
+    }, 3000);
+  });
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
 let currentTab = 'ipo';
-let alertData  = null;
 
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', ['ipo','signals','watchlist'][i] === tab);
-  });
+  document.querySelectorAll('.tab').forEach((t, i) =>
+    t.classList.toggle('active', ['ipo','signals','watchlist'][i] === tab));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
 }
 
 function relTime(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(m / 60);
-  const d = Math.floor(h / 24);
-  if (d > 0) return d + 'd ago';
-  if (h > 0) return h + 'h ago';
-  if (m > 0) return m + 'm ago';
-  return 'just now';
+  const d = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  const h = Math.floor((Date.now() - new Date(iso)) / 3600000);
+  const m = Math.floor((Date.now() - new Date(iso)) / 60000);
+  return d > 0 ? d+'d ago' : h > 0 ? h+'h ago' : m > 0 ? m+'m ago' : 'just now';
 }
 
-function signalClass(s) {
-  if (s.toLowerCase().includes('volume')) return 'volume';
-  if (s.toLowerCase().includes('rsi'))    return 'rsi';
-  if (s.toLowerCase().includes('golden')) return 'golden';
-  return '';
+function sigClass(s) {
+  s = s.toLowerCase();
+  return s.includes('volume') ? 'sig-vol' : s.includes('rsi') ? 'sig-rsi' : 'sig-golden';
 }
 
+// ── Render functions ──────────────────────────────────────────────────────────
 function renderIPO(data) {
-  const el = document.getElementById('panel-ipo');
   const alerts = data.ipo_alerts || [];
   document.getElementById('ipo-badge').innerHTML =
     alerts.length ? `<span class="badge">${alerts.length}</span>` : '';
-
-  if (!alerts.length) {
-    el.innerHTML = `<div class="empty">
-      <div class="empty-icon">🔍</div>
-      No IPO trading alerts yet.<br>You'll be notified when a tracked company goes live.
-    </div>`;
-    return;
-  }
-
-  el.innerHTML = alerts.map(a => `
-    <div class="card">
-      <div class="card-header">
-        <div class="company-name">${a.company}</div>
-        ${a.ticker ? `<span class="ticker-badge">${a.ticker}</span>` : ''}
-      </div>
-      <div class="card-meta">${a.date} &nbsp;·&nbsp; ${relTime(a.timestamp)}</div>
-      <span class="ipo-pill">🟢 Open for Trading</span>
-      <a class="ipo-link" href="${a.url}" target="_blank">View SEC Prospectus →</a>
-    </div>
-  `).join('');
+  document.getElementById('panel-ipo').innerHTML = alerts.length
+    ? alerts.map(a => `
+        <div class="card">
+          <div class="card-header">
+            <div class="company-name">${a.company}</div>
+            ${a.ticker ? `<span class="ticker-badge">${a.ticker}</span>` : ''}
+          </div>
+          <div class="card-meta">${a.date} · ${relTime(a.timestamp)}</div>
+          <span class="ipo-pill">🟢 Open for Trading</span>
+          <a class="ipo-link" href="${a.url}" target="_blank">View SEC Prospectus →</a>
+        </div>`).join('')
+    : `<div class="empty"><div class="empty-icon">🔍</div>No IPO trading alerts yet.<br>You'll be notified when a tracked company goes live.</div>`;
 }
 
 function renderSignals(data) {
-  const el = document.getElementById('panel-signals');
-  const signals = data.buy_signals || [];
+  const sigs = data.buy_signals || [];
   document.getElementById('sig-badge').innerHTML =
-    signals.length ? `<span class="badge">${signals.length}</span>` : '';
-
-  if (!signals.length) {
-    el.innerHTML = `<div class="empty">
-      <div class="empty-icon">📉</div>
-      No buy signals detected yet.<br>Checked 4× daily for volume surges, RSI breakouts &amp; Golden Cross.
-    </div>`;
-    return;
-  }
-
-  el.innerHTML = signals.map(s => `
-    <div class="card">
-      <div class="card-header">
-        <div class="company-name">${s.name}</div>
-        <span class="ticker-badge">${s.ticker}</span>
-      </div>
-      <div class="card-meta">${s.date} &nbsp;·&nbsp; ${relTime(s.timestamp)}</div>
-      <div class="price-row">
-        <div class="stat">
-          <div class="stat-label">Price</div>
-          <div class="stat-value">$${s.price}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Change</div>
-          <div class="stat-value ${s.price_chg_pct >= 0 ? 'positive' : 'negative'}">
-            ${s.price_chg_pct >= 0 ? '+' : ''}${s.price_chg_pct}%
+    sigs.length ? `<span class="badge">${sigs.length}</span>` : '';
+  document.getElementById('panel-signals').innerHTML = sigs.length
+    ? sigs.map(s => `
+        <div class="card">
+          <div class="card-header">
+            <div class="company-name">${s.name}</div>
+            <span class="ticker-badge">${s.ticker}</span>
           </div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Volume</div>
-          <div class="stat-value positive">${s.vol_ratio}x</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">RSI</div>
-          <div class="stat-value ${s.rsi >= 70 ? 'positive' : ''}">${s.rsi}</div>
-        </div>
-      </div>
-      <div>
-        ${(s.signals || []).map(sig =>
-          `<span class="signal-tag ${signalClass(sig)}">${sig}</span>`
-        ).join('')}
-      </div>
-    </div>
-  `).join('');
+          <div class="card-meta">${s.date} · ${relTime(s.timestamp)}</div>
+          <div class="price-row">
+            <div class="stat"><div class="stat-label">Price</div><div class="stat-value">$${s.price}</div></div>
+            <div class="stat"><div class="stat-label">Change</div>
+              <div class="stat-value ${s.price_chg_pct >= 0 ? 'positive' : 'negative'}">
+                ${s.price_chg_pct >= 0 ? '+' : ''}${s.price_chg_pct}%</div></div>
+            <div class="stat"><div class="stat-label">Volume</div><div class="stat-value positive">${s.vol_ratio}×</div></div>
+            <div class="stat"><div class="stat-label">RSI</div><div class="stat-value ${s.rsi >= 70 ? 'positive' : ''}">${s.rsi}</div></div>
+          </div>
+          <div>${(s.signals||[]).map(sig => `<span class="signal-tag ${sigClass(sig)}">${sig}</span>`).join('')}</div>
+        </div>`).join('')
+    : `<div class="empty"><div class="empty-icon">📉</div>No buy signals yet.<br>Checked 4× daily for volume surges, RSI &amp; Golden Cross.</div>`;
 }
 
 function renderWatchlist(data) {
-  const el = document.getElementById('panel-watchlist');
-  const companies = data.watched_companies || [];
-  const stocks    = data.watched_stocks    || {};
-
-  el.innerHTML = `
+  const cos = data.watched_companies || [];
+  const sts = data.watched_stocks || {};
+  document.getElementById('panel-watchlist').innerHTML = `
     <div class="watch-section">
-      <h3>📋 IPO Watch — ${companies.length} companies</h3>
-      <div class="watch-grid">
-        ${companies.map(c => `<div class="watch-item">${c}</div>`).join('')}
-      </div>
+      <h3>📋 IPO Watch — ${cos.length} companies</h3>
+      <div class="watch-grid">${cos.map(c => `<div class="watch-item">${c}</div>`).join('')}</div>
     </div>
     <div class="watch-section">
-      <h3>📈 Buy Signal Watch — ${Object.keys(stocks).length} stocks</h3>
-      <div class="watch-grid">
-        ${Object.entries(stocks).map(([name, ticker]) =>
-          `<div class="watch-item">${name}<div class="wt">${ticker}</div></div>`
-        ).join('')}
-      </div>
+      <h3>📈 Buy Signal Watch — ${Object.keys(sts).length} stocks</h3>
+      <div class="watch-grid">${Object.entries(sts).map(([n,t]) =>
+        `<div class="watch-item">${n}<div class="wt">${t}</div></div>`).join('')}</div>
     </div>
-    <div class="card" style="margin-top:8px;font-size:12px;color:var(--muted);line-height:1.6">
+    <div class="card" style="font-size:12px;color:var(--muted);line-height:1.7">
       <b style="color:var(--text)">Signal thresholds</b><br>
-      🔥 Volume ≥ 2.5× 20-day average + Price ≥ +4%<br>
+      🔥 Volume ≥ 2.5× 20-day avg + Price ≥ +4%<br>
       ⚡ RSI ≥ 68 with volume surge ≥ 1.5×<br>
       ⭐ 50-day MA crosses above 200-day MA (Golden Cross)
-    </div>
-  `;
+    </div>`;
 }
 
+// ── Data loading ──────────────────────────────────────────────────────────────
+let lastKnownIPO = 0, lastKnownSig = 0;
+
 async function loadData() {
-  const icon = document.getElementById('refresh-icon');
-  icon.classList.add('spin');
+  document.getElementById('ri').classList.add('spin');
   try {
     const res = await fetch('alerts.json?t=' + Date.now());
-    if (!res.ok) throw new Error('Not found');
-    alertData = await res.json();
-    renderIPO(alertData);
-    renderSignals(alertData);
-    renderWatchlist(alertData);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
 
-    const lu = alertData.last_updated
-      ? new Date(alertData.last_updated).toLocaleString()
-      : 'unknown';
+    // Play sound if new alerts arrived since last check
+    const newIPO = (data.ipo_alerts||[]).length;
+    const newSig = (data.buy_signals||[]).length;
+    if ((newIPO > lastKnownIPO || newSig > lastKnownSig) && (lastKnownIPO + lastKnownSig > 0)) {
+      playAlertSound();
+    }
+    lastKnownIPO = newIPO; lastKnownSig = newSig;
+
+    renderIPO(data); renderSignals(data); renderWatchlist(data);
+
+    const lu = data.last_updated
+      ? new Date(data.last_updated).toLocaleString() : '—';
     document.getElementById('status-bar').innerHTML =
-      `<span class="dot"></span>Last updated: ${lu} UTC &nbsp;·&nbsp; Runs 4× daily`;
-  } catch(e) {
-    document.getElementById('status-bar').textContent = 'Error loading data — pull to refresh';
+      `<span class="dot"></span>Updated: ${lu} UTC · Runs 4× daily`;
+  } catch {
+    document.getElementById('status-bar').textContent = 'Error loading — tap ↻ to retry';
   } finally {
-    icon.classList.remove('spin');
+    document.getElementById('ri').classList.remove('spin');
   }
 }
 
 loadData();
-// Auto-refresh every 5 minutes if page is open
-setInterval(loadData, 5 * 60 * 1000);
+setInterval(loadData, 5 * 60 * 1000);   // auto-refresh every 5 min
 </script>
 </body>
 </html>

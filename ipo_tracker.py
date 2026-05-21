@@ -13,8 +13,11 @@ import sys
 from datetime import datetime, timedelta
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
+TELEGRAM_BOT_TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID    = os.environ.get("TELEGRAM_CHAT_ID", "")
+VAPID_PRIVATE_KEY   = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_PUBLIC_KEY    = os.environ.get("VAPID_PUBLIC_KEY", "")
+PUSH_SUBSCRIPTION   = os.environ.get("PUSH_SUBSCRIPTION", "")  # JSON string
 SCRIPT_DIR         = os.path.dirname(os.path.abspath(__file__))
 SEEN_FILE          = os.path.join(SCRIPT_DIR, "seen_filings.json")
 ALERTS_FILE        = os.path.join(SCRIPT_DIR, "docs", "alerts.json")
@@ -103,6 +106,25 @@ def save_alerts(data: dict):
     with open(ALERTS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
+# ── Web Push ───────────────────────────────────────────────────────────────────
+def send_push(title: str, body: str, alert_type: str = "info") -> bool:
+    if not PUSH_SUBSCRIPTION or not VAPID_PRIVATE_KEY:
+        return False
+    try:
+        from pywebpush import webpush, WebPushException
+        sub = json.loads(PUSH_SUBSCRIPTION)
+        webpush(
+            subscription_info=sub,
+            data=json.dumps({"title": title, "body": body, "type": alert_type}),
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_claims={"sub": "mailto:ipo-tracker@gmail.com"},
+        )
+        log(f"Push sent: {title}")
+        return True
+    except Exception as e:
+        log(f"Push error: {e}")
+        return False
+
 # ── SEC EDGAR ──────────────────────────────────────────────────────────────────
 def search_edgar(company: str) -> list:
     url = "https://efts.sec.gov/LATEST/search-index"
@@ -168,6 +190,11 @@ def check_filings(seen: dict, alerts: dict) -> int:
             )
             if send_telegram(msg):
                 log(f"IPO alert: {entity} | {form_type} | {filed_date}")
+            send_push(
+                title=f"🟢 IPO NOW TRADING — {entity}{ticker_str}",
+                body=f"Filed {form_type} on {filed_date}. Tap to view SEC prospectus.",
+                alert_type="ipo"
+            )
 
             # Dashboard
             alerts["ipo_alerts"].insert(0, {
@@ -270,6 +297,11 @@ def check_buy_signals(seen: dict, alerts: dict) -> int:
             )
             if send_telegram(msg):
                 log(f"Buy signal: {name} ({ticker}) | {' | '.join(signals)}")
+            send_push(
+                title=f"📈 BUY SIGNAL — {name} ({ticker})",
+                body=f"${current_price:.2f}  {price_chg_pct:+.1f}%  ·  {signals[0]}",
+                alert_type="signal"
+            )
 
             # Dashboard
             alerts["buy_signals"].insert(0, {
