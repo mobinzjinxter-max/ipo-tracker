@@ -2,15 +2,15 @@ name: IPO Tracker
 
 on:
   schedule:
-    # 4x daily — 8am, 12pm, 4pm, 8pm UTC (adjust +1 for BST)
+    # 4x daily — 8am, 12pm, 4pm, 8pm UTC
     - cron: '0 7,11,15,19 * * *'
-  workflow_dispatch:   # allows manual run from GitHub UI
+  workflow_dispatch:
 
 jobs:
   check:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed to commit seen_filings.json back
+      contents: write
 
     steps:
       - name: Checkout
@@ -22,7 +22,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests yfinance
 
       - name: Run IPO Tracker
         env:
@@ -30,10 +30,10 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python ipo_tracker.py
 
-      - name: Save state
+      - name: Commit state & dashboard data
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add seen_filings.json
-          git diff --staged --quiet || git commit -m "chore: update seen filings"
+          git add seen_filings.json docs/alerts.json
+          git diff --staged --quiet || git commit -m "chore: update tracker data"
           git push

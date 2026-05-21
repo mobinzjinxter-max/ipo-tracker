@@ -1,0 +1,35 @@
+{
+  "ipo_alerts": [],
+  "buy_signals": [],
+  "last_updated": "2026-05-21T23:33:23Z",
+  "watched_companies": [
+    "Anthropic",
+    "Databricks",
+    "SpaceX",
+    "Cerebras Systems",
+    "Lambda Labs",
+    "Trailblazer",
+    "OpenAI",
+    "Stripe",
+    "Chime",
+    "Klarna",
+    "Anduril",
+    "Shield AI",
+    "Shein",
+    "Fanatics",
+    "Starlink",
+    "Space Exploration Technologies",
+    "Averin Capital Acquisition",
+    "Discord"
+  ],
+  "watched_stocks": {
+    "SanDisk": "SNDK",
+    "Astera Labs": "ALAB",
+    "Bloom Energy": "BE",
+    "Credo Technology": "CRDO",
+    "X-energy": "XE",
+    "NuScale Power": "SMR",
+    "Oklo": "OKLO",
+    "Rocket Lab": "RKLB"
+  }
+}
