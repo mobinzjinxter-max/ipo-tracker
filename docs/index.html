@@ -155,6 +155,26 @@
     }
     .watch-item .wt { font-size: 11px; color: var(--blue); margin-top: 2px; }
 
+    /* ── IPO date rows ── */
+    .watch-date-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .wdi-name { font-size: 14px; font-weight: 600; }
+    .wdi-note { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .date-pill {
+      font-size: 11px; font-weight: 700; border-radius: 20px;
+      padding: 4px 10px; white-space: nowrap; flex-shrink: 0; text-align: center;
+    }
+    .date-pill.listed   { background: rgba(63,185,80,0.18);   color: var(--green); }
+    .date-pill.expected { background: rgba(88,166,255,0.18);  color: var(--blue);  }
+    .date-pill.tbd      { background: rgba(139,148,158,0.15); color: var(--muted); }
+    .legend-row {
+      display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .legend-item { font-size: 11px; display: flex; align-items: center; gap: 5px; color: var(--muted); }
+
     /* ── Watchlist edit controls ── */
     .section-header {
       display: flex; justify-content: space-between;
@@ -621,6 +641,29 @@ function clearToken() {
   renderWatchlistPanel();
 }
 
+// ── Anticipated IPO dates (researched May 2026) ───────────────────────────────
+// status: "listed" = already public | "expected" = date known/rumoured | "tbd" = no date
+const IPO_DATE_INFO = {
+  "Anthropic":                    { status:"expected", date:"H2 2026",        note:"Oct 2026 rumoured · ~$900B valuation" },
+  "Databricks":                   { status:"expected", date:"H2 2026",        note:"No S-1 filed · only profitable AI IPO" },
+  "SpaceX":                       { status:"expected", date:"Jun 12, 2026",   note:"Nasdaq: SPCX · ~$1.75T valuation" },
+  "Space Exploration Technologies":{ status:"expected", date:"Jun 12, 2026",  note:"Same entity as SpaceX (SPCX)" },
+  "Starlink":                     { status:"expected", date:"Jun 12, 2026",   note:"SpaceX subsidiary — listed via SPCX" },
+  "Cerebras Systems":             { status:"listed",   date:"May 14, 2026",   note:"Nasdaq: CBRS · IPO @ $185 · +68% debut" },
+  "OpenAI":                       { status:"expected", date:"Q4 2026",        note:"~$852B target valuation" },
+  "Stripe":                       { status:"expected", date:"H2 2026",        note:"No S-1 filed · speculative Sep 2026" },
+  "Klarna":                       { status:"listed",   date:"Sep 10, 2025",   note:"NYSE: KLAR · IPO @ $40 · +15% debut" },
+  "Chime":                        { status:"listed",   date:"Jun 12, 2025",   note:"Nasdaq: CHYM · IPO @ $27/share" },
+  "Anduril":                      { status:"expected", date:"Late 2026",      note:"Post Arsenal-1 launch · ~mid-2026" },
+  "Shield AI":                    { status:"expected", date:"2027",           note:"$12.7B valuation · no S-1 filed" },
+  "Shein":                        { status:"expected", date:"TBD",            note:"Hong Kong listing planned" },
+  "Fanatics":                     { status:"tbd",      date:"No plans",       note:"CEO: no near-term IPO" },
+  "Discord":                      { status:"expected", date:"H2 2026",        note:"Confidential S-1 filed Jan 2026" },
+  "Lambda Labs":                  { status:"tbd",      date:"TBD",            note:"No IPO announced" },
+  "Trailblazer":                  { status:"tbd",      date:"TBD",            note:"No IPO announced" },
+  "Averin Capital Acquisition":   { status:"tbd",      date:"TBD",            note:"SPAC — monitoring SEC filings" },
+};
+
 // ── Render: Watchlist panel ───────────────────────────────────────────────────
 function renderWatchlist(data) {
   _serverData = data;
@@ -657,9 +700,23 @@ function renderWatchlistPanel() {
         </div>`).join('')}</div>`
     : `<div class="empty-custom">No custom stocks yet — add one above</div>`;
 
-  // Default grids (from server alerts.json)
+  // Default IPO companies with anticipated dates
   const defaultCoGrid = cos.length
-    ? `<div class="watch-grid">${cos.map(c => `<div class="watch-item">${esc(c)}</div>`).join('')}</div>`
+    ? `<div class="legend-row">
+        <span class="legend-item"><span class="date-pill listed" style="font-size:10px;padding:2px 7px">May 14</span> Already public</span>
+        <span class="legend-item"><span class="date-pill expected" style="font-size:10px;padding:2px 7px">Q4 2026</span> Anticipated</span>
+        <span class="legend-item"><span class="date-pill tbd" style="font-size:10px;padding:2px 7px">TBD</span> No date yet</span>
+      </div>` +
+      cos.map(c => {
+        const info = IPO_DATE_INFO[c] || { status:'tbd', date:'TBD', note:'' };
+        return `<div class="watch-date-item">
+          <div>
+            <div class="wdi-name">${esc(c)}</div>
+            ${info.note ? `<div class="wdi-note">${esc(info.note)}</div>` : ''}
+          </div>
+          <span class="date-pill ${info.status}">${esc(info.date)}</span>
+        </div>`;
+      }).join('')
     : `<div class="empty-custom">Loading…</div>`;
 
   const defaultStGrid = Object.keys(sts).length
