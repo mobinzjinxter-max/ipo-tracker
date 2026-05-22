@@ -21,6 +21,7 @@ PUSH_SUBSCRIPTION   = os.environ.get("PUSH_SUBSCRIPTION", "")  # JSON string
 SCRIPT_DIR         = os.path.dirname(os.path.abspath(__file__))
 SEEN_FILE          = os.path.join(SCRIPT_DIR, "seen_filings.json")
 ALERTS_FILE        = os.path.join(SCRIPT_DIR, "docs", "alerts.json")
+CUSTOM_FILE        = os.path.join(SCRIPT_DIR, "docs", "custom_watches.json")
 LOG_FILE           = os.path.join(SCRIPT_DIR, "ipo_tracker.log")
 
 # ── IPO watch list ─────────────────────────────────────────────────────────────
@@ -91,6 +92,25 @@ def save_seen(seen: dict):
     with open(SEEN_FILE, "w", encoding="utf-8") as f:
         json.dump(seen, f, indent=2)
 
+# ── Custom watchlist (added via the PWA) ──────────────────────────────────────
+def load_custom_watches() -> tuple:
+    """Return (extra_companies: list, extra_stocks: dict) from custom_watches.json."""
+    if not os.path.exists(CUSTOM_FILE):
+        return [], {}
+    try:
+        with open(CUSTOM_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        companies = [c for c in data.get("ipo_companies", []) if isinstance(c, str) and c.strip()]
+        stocks    = {
+            s["name"]: s["ticker"]
+            for s in data.get("stocks", [])
+            if isinstance(s, dict) and s.get("name") and s.get("ticker")
+        }
+        return companies, stocks
+    except Exception as e:
+        log(f"Custom watches load error: {e}")
+        return [], {}
+
 # ── Alerts dashboard data ──────────────────────────────────────────────────────
 def load_alerts() -> dict:
     if os.path.exists(ALERTS_FILE):
@@ -160,10 +180,11 @@ def build_filing_url(src: dict) -> str:
     return "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&type=424B4"
 
 # ── IPO check ──────────────────────────────────────────────────────────────────
-def check_filings(seen: dict, alerts: dict) -> int:
-    log("Scanning SEC EDGAR for IPO filings...")
+def check_filings(seen: dict, alerts: dict, companies: list = None) -> int:
+    companies = companies if companies is not None else COMPANIES
+    log(f"Scanning SEC EDGAR for IPO filings ({len(companies)} companies)...")
     found = 0
-    for company in COMPANIES:
+    for company in companies:
         for hit in search_edgar(company):
             src       = hit.get("_source", {})
             filing_id = src.get("adsh") or hit.get("_id", "")
@@ -224,21 +245,22 @@ def calc_rsi(closes: list, period: int = 14) -> float:
         return 100.0
     return 100 - (100 / (1 + avg_gain / avg_loss))
 
-def check_buy_signals(seen: dict, alerts: dict) -> int:
+def check_buy_signals(seen: dict, alerts: dict, stocks: dict = None) -> int:
+    stocks = stocks if stocks is not None else WATCH_STOCKS
     try:
         import yfinance as yf
     except ImportError:
         log("yfinance not installed — skipping buy signals")
         return 0
 
-    log("Scanning buy signals...")
+    log(f"Scanning buy signals ({len(stocks)} stocks)...")
     found     = 0
     today_str = datetime.now().strftime("%Y-%m-%d")
 
     # Keep existing buy signal history for the dashboard
     existing_signals = {s["ticker"] + s["date"]: s for s in alerts.get("buy_signals", [])}
 
-    for name, ticker in WATCH_STOCKS.items():
+    for name, ticker in stocks.items():
         try:
             hist = yf.Ticker(ticker).history(period="220d")
             if len(hist) < 22:
@@ -342,8 +364,21 @@ if __name__ == "__main__":
         seen   = load_seen()
         alerts = load_alerts()
 
-        ipo_count    = check_filings(seen, alerts)
-        signal_count = check_buy_signals(seen, alerts)
+        # Merge hardcoded lists with custom additions from the PWA
+        custom_companies, custom_stocks = load_custom_watches()
+        all_companies = COMPANIES + [c for c in custom_companies if c not in COMPANIES]
+        all_stocks    = {**WATCH_STOCKS, **custom_stocks}
+        if custom_companies:
+            log(f"Custom IPO companies: {custom_companies}")
+        if custom_stocks:
+            log(f"Custom stocks: {list(custom_stocks.keys())}")
+
+        ipo_count    = check_filings(seen, alerts, all_companies)
+        signal_count = check_buy_signals(seen, alerts, all_stocks)
+
+        # Write merged lists to alerts.json so the PWA can display them
+        alerts["watched_companies"] = all_companies
+        alerts["watched_stocks"]    = all_stocks
 
         save_seen(seen)
         save_alerts(alerts)

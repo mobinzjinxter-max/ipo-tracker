@@ -48,7 +48,7 @@
     .spin { animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Bell banner ── */
+    /* ── Banners ── */
     #bell-banner {
       background: rgba(88,166,255,0.1); border-bottom: 1px solid rgba(88,166,255,0.2);
       padding: 10px 18px; font-size: 13px; color: var(--blue);
@@ -142,8 +142,8 @@
     .sig-rsi    { background: rgba(88,166,255,0.15); color: var(--blue); }
     .sig-golden { background: rgba(210,153,34,0.15); color: var(--yellow); }
 
-    /* ── Watchlist ── */
-    .watch-section { margin-bottom: 20px; }
+    /* ── Watchlist base ── */
+    .watch-section { margin-bottom: 22px; }
     .watch-section h3 {
       font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
       color: var(--muted); margin-bottom: 10px;
@@ -154,6 +154,75 @@
       border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 500;
     }
     .watch-item .wt { font-size: 11px; color: var(--blue); margin-top: 2px; }
+
+    /* ── Watchlist edit controls ── */
+    .section-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+    .section-header h3 { margin-bottom: 0; }
+    .add-row {
+      display: flex; gap: 7px; margin-bottom: 12px;
+    }
+    .add-input {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 9px 12px;
+      font-size: 14px; outline: none;
+      -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
+    }
+    .add-input:focus { border-color: var(--blue); }
+    .add-input::placeholder { color: var(--muted); }
+    .add-btn {
+      background: var(--green); color: #000; border: none;
+      border-radius: 8px; padding: 9px 16px;
+      font-size: 14px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+    }
+    .add-btn:active { opacity: 0.7; }
+    .watch-item.custom {
+      border-color: rgba(210,153,34,0.45);
+      display: flex; justify-content: space-between;
+      align-items: center; gap: 6px;
+    }
+    .watch-item.custom .wt { color: var(--yellow); }
+    .custom-label {
+      font-size: 9px; color: var(--yellow); font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em; margin-top: 3px;
+    }
+    .del-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1;
+      flex-shrink: 0; border-radius: 4px;
+    }
+    .del-btn:active { color: var(--red); }
+    .empty-custom {
+      font-size: 12px; color: var(--muted); margin-bottom: 12px;
+      padding: 10px 12px; border-radius: 8px;
+      border: 1px dashed var(--border); text-align: center;
+    }
+
+    /* ── Sync / token card ── */
+    .token-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-top: 4px;
+    }
+    .token-card h3 {
+      font-size: 12px; color: var(--muted); margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .token-note {
+      font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 12px;
+    }
+    .token-note a { color: var(--blue); }
+    .sync-status {
+      font-size: 12px; text-align: center; padding: 8px 10px;
+      border-radius: 8px; margin-top: 10px; display: none; line-height: 1.4;
+    }
+    .sync-ok  { background: rgba(63,185,80,0.12);  color: var(--green); display: block; }
+    .sync-err { background: rgba(248,81,73,0.12);  color: var(--red);   display: block; }
+    .clear-token-btn {
+      font-size: 11px; color: var(--red); background: none;
+      border: none; cursor: pointer; padding: 6px 0 0; display: block;
+    }
 
     /* ── Empty state ── */
     .empty {
@@ -223,14 +292,16 @@
 // ── VAPID public key ──────────────────────────────────────────────────────────
 const VAPID_PUBLIC_KEY = 'BBojiGk0fn_rVfLh0lbIicFyVhuQbzJ_DaCIOEJNd8c13lGUp75axP62DpHIsy-KOplwvIfmrKN6Wd4m4n_DvZk';
 
+// GitHub repo for custom watchlist sync
+const REPO        = 'mobinzjinxter-max/ipo-tracker';
+const CUSTOM_PATH = 'docs/custom_watches.json';
+
 // ── Audio ─────────────────────────────────────────────────────────────────────
 const audio = document.getElementById('alert-audio');
 function playAlertSound() {
   audio.currentTime = 0;
   audio.play().catch(() => {});
 }
-
-// If app was opened by tapping a notification (?notify=1) → play sound
 if (new URLSearchParams(location.search).get('notify') === '1') {
   window.addEventListener('load', () => setTimeout(playAlertSound, 300));
 }
@@ -240,7 +311,6 @@ const isStandalone = window.navigator.standalone === true;
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
 function checkInstallBanner() {
-  // Show "add to home screen" prompt if in Safari browser (not installed)
   if (isIOS && !isStandalone) {
     document.getElementById('install-banner').style.display = 'block';
     document.getElementById('bell-btn').title = 'Add to Home Screen first';
@@ -256,7 +326,6 @@ if ('serviceWorker' in navigator) {
     checkBellBanner();
   }).catch(err => console.warn('SW error:', err));
 
-  // Listen for "PLAY_SOUND" from service worker (notification tap while app open)
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data?.type === 'PLAY_SOUND') playAlertSound();
   });
@@ -281,7 +350,6 @@ async function checkBellBanner() {
 }
 
 async function enableNotifications() {
-  // Guard: must be installed as PWA on iOS
   if (isIOS && !isStandalone) {
     alert('Please add this app to your Home Screen first.\n\nTap Share (↑) → Add to Home Screen → open from your home screen.');
     return;
@@ -299,7 +367,6 @@ async function enableNotifications() {
   document.getElementById('bell-btn').classList.add('active');
   document.getElementById('bell-btn').textContent = '🔔 On';
 
-  // Show subscription JSON for one-time copy
   const subJSON = JSON.stringify(sub.toJSON(), null, 2);
   document.getElementById('sub-json').textContent = subJSON;
   document.getElementById('sub-box').style.display = 'block';
@@ -351,7 +418,13 @@ function sigClass(s) {
   return s.includes('volume') ? 'sig-vol' : s.includes('rsi') ? 'sig-rsi' : 'sig-golden';
 }
 
-// ── Render functions ──────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Render: IPO alerts ────────────────────────────────────────────────────────
 function renderIPO(data) {
   const alerts = data.ipo_alerts || [];
   document.getElementById('ipo-badge').innerHTML =
@@ -360,16 +433,17 @@ function renderIPO(data) {
     ? alerts.map(a => `
         <div class="card">
           <div class="card-header">
-            <div class="company-name">${a.company}</div>
-            ${a.ticker ? `<span class="ticker-badge">${a.ticker}</span>` : ''}
+            <div class="company-name">${esc(a.company)}</div>
+            ${a.ticker ? `<span class="ticker-badge">${esc(a.ticker)}</span>` : ''}
           </div>
-          <div class="card-meta">${a.date} · ${relTime(a.timestamp)}</div>
+          <div class="card-meta">${esc(a.date)} · ${relTime(a.timestamp)}</div>
           <span class="ipo-pill">🟢 Open for Trading</span>
-          <a class="ipo-link" href="${a.url}" target="_blank">View SEC Prospectus →</a>
+          <a class="ipo-link" href="${esc(a.url)}" target="_blank">View SEC Prospectus →</a>
         </div>`).join('')
     : `<div class="empty"><div class="empty-icon">🔍</div>No IPO trading alerts yet.<br>You'll be notified when a tracked company goes live.</div>`;
 }
 
+// ── Render: Buy signals ───────────────────────────────────────────────────────
 function renderSignals(data) {
   const sigs = data.buy_signals || [];
   document.getElementById('sig-badge').innerHTML =
@@ -378,10 +452,10 @@ function renderSignals(data) {
     ? sigs.map(s => `
         <div class="card">
           <div class="card-header">
-            <div class="company-name">${s.name}</div>
-            <span class="ticker-badge">${s.ticker}</span>
+            <div class="company-name">${esc(s.name)}</div>
+            <span class="ticker-badge">${esc(s.ticker)}</span>
           </div>
-          <div class="card-meta">${s.date} · ${relTime(s.timestamp)}</div>
+          <div class="card-meta">${esc(s.date)} · ${relTime(s.timestamp)}</div>
           <div class="price-row">
             <div class="stat"><div class="stat-label">Price</div><div class="stat-value">$${s.price}</div></div>
             <div class="stat"><div class="stat-label">Change</div>
@@ -390,30 +464,285 @@ function renderSignals(data) {
             <div class="stat"><div class="stat-label">Volume</div><div class="stat-value positive">${s.vol_ratio}×</div></div>
             <div class="stat"><div class="stat-label">RSI</div><div class="stat-value ${s.rsi >= 70 ? 'positive' : ''}">${s.rsi}</div></div>
           </div>
-          <div>${(s.signals||[]).map(sig => `<span class="signal-tag ${sigClass(sig)}">${sig}</span>`).join('')}</div>
+          <div>${(s.signals||[]).map(sig => `<span class="signal-tag ${sigClass(sig)}">${esc(sig)}</span>`).join('')}</div>
         </div>`).join('')
     : `<div class="empty"><div class="empty-icon">📉</div>No buy signals yet.<br>Checked 4× daily for volume surges, RSI &amp; Golden Cross.</div>`;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Custom watchlist management ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+// State: custom companies & stocks added by user
+let customData = { ipo_companies: [], stocks: [] };
+let customFileSHA = '';          // GitHub file SHA needed for updates
+let _serverData   = {};          // cached server alerts.json data
+
+// Get GitHub token from localStorage
+function getToken() { return localStorage.getItem('gh_token') || ''; }
+
+// Show a transient status message inside the watchlist panel
+function showSyncStatus(msg, ok) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'sync-status ' + (ok ? 'sync-ok' : 'sync-err');
+  setTimeout(() => { el.className = 'sync-status'; }, 5000);
+}
+
+// ── Load custom watches (from repo file + GitHub API for SHA) ─────────────────
+async function fetchCustomWatches() {
+  // Fast path: load from static file served by GitHub Pages
+  try {
+    const r = await fetch('custom_watches.json?t=' + Date.now());
+    if (r.ok) customData = await r.json();
+  } catch (_) {}
+
+  // If token available, also fetch via API to get the SHA (needed for updates)
+  const token = getToken();
+  if (token) {
+    try {
+      const r = await fetch(
+        `https://api.github.com/repos/${REPO}/contents/${CUSTOM_PATH}`,
+        { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' } }
+      );
+      if (r.ok) {
+        const meta = await r.json();
+        customFileSHA = meta.sha;
+        customData = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+      }
+    } catch (_) {}
+  }
+}
+
+// ── Save custom watches → GitHub API (or just re-render if no token) ──────────
+async function saveCustomWatches() {
+  const token = getToken();
+
+  if (!token) {
+    // No token — persist in localStorage as fallback, note that cloud won't track
+    localStorage.setItem('custom_watches_local', JSON.stringify(customData));
+    renderWatchlistPanel();
+    return;
+  }
+
+  renderWatchlistPanel(); // optimistic UI update
+
+  try {
+    // Build base64 content (btoa needs latin-1, use TextEncoder for UTF-8)
+    const jsonStr = JSON.stringify(customData, null, 2);
+    const bytes   = new TextEncoder().encode(jsonStr);
+    const b64     = btoa(String.fromCharCode(...bytes));
+
+    const body = { message: 'chore: update custom watches', content: b64 };
+    if (customFileSHA) body.sha = customFileSHA;
+
+    const r = await fetch(
+      `https://api.github.com/repos/${REPO}/contents/${CUSTOM_PATH}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/vnd.github.v3+json',
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (r.ok) {
+      const result = await r.json();
+      customFileSHA = result.content.sha;
+      showSyncStatus('✅ Saved — scanner picks up on next run', true);
+    } else {
+      const err = await r.json().catch(() => ({}));
+      showSyncStatus(`❌ GitHub error: ${err.message || r.status}`, false);
+    }
+  } catch (e) {
+    showSyncStatus(`❌ Network error`, false);
+  }
+}
+
+// ── Add / remove helpers ──────────────────────────────────────────────────────
+function addIPOCompany() {
+  const input = document.getElementById('add-co-input');
+  const name  = input.value.trim();
+  if (!name) return;
+  if (customData.ipo_companies.includes(name)) {
+    showSyncStatus('Already in your watchlist', false); return;
+  }
+  customData.ipo_companies.push(name);
+  input.value = '';
+  saveCustomWatches();
+}
+
+function removeIPOCompany(btn) {
+  const name = btn.dataset.name;
+  customData.ipo_companies = customData.ipo_companies.filter(c => c !== name);
+  saveCustomWatches();
+}
+
+function addStock() {
+  const nameEl   = document.getElementById('add-st-name');
+  const tickerEl = document.getElementById('add-st-ticker');
+  const name     = nameEl.value.trim();
+  const ticker   = tickerEl.value.trim().toUpperCase();
+  if (!name || !ticker) { showSyncStatus('Enter both company name and ticker', false); return; }
+  if (customData.stocks.find(s => s.ticker === ticker)) {
+    showSyncStatus(`${ticker} already in watchlist`, false); return;
+  }
+  customData.stocks.push({ name, ticker });
+  nameEl.value = ''; tickerEl.value = '';
+  saveCustomWatches();
+}
+
+function removeStock(btn) {
+  const ticker = btn.dataset.ticker;
+  customData.stocks = customData.stocks.filter(s => s.ticker !== ticker);
+  saveCustomWatches();
+}
+
+// ── GitHub token management ───────────────────────────────────────────────────
+async function saveToken() {
+  const input = document.getElementById('gh-token-input');
+  const token = input.value.trim();
+  if (!token || token.startsWith('•')) { showSyncStatus('Enter a valid token first', false); return; }
+  localStorage.setItem('gh_token', token);
+  input.value = '•'.repeat(40);
+  // Re-fetch to grab SHA
+  await fetchCustomWatches();
+  renderWatchlistPanel();
+  showSyncStatus('✅ Token saved — sync enabled', true);
+}
+
+function clearToken() {
+  localStorage.removeItem('gh_token');
+  customFileSHA = '';
+  renderWatchlistPanel();
+}
+
+// ── Render: Watchlist panel ───────────────────────────────────────────────────
 function renderWatchlist(data) {
-  const cos = data.watched_companies || [];
-  const sts = data.watched_stocks || {};
+  _serverData = data;
+  renderWatchlistPanel();
+}
+
+function renderWatchlistPanel() {
+  const cos = _serverData.watched_companies || [];
+  const sts = _serverData.watched_stocks   || {};
+  const token = getToken();
+
+  const customCos = customData.ipo_companies || [];
+  const customSts = customData.stocks        || [];
+
+  // Build custom company grid
+  const customCoGrid = customCos.length
+    ? `<div class="watch-grid">${customCos.map(c => `
+        <div class="watch-item custom">
+          <div><div>${esc(c)}</div><div class="custom-label">custom</div></div>
+          <button class="del-btn" data-name="${esc(c)}" onclick="removeIPOCompany(this)" title="Remove">×</button>
+        </div>`).join('')}</div>`
+    : `<div class="empty-custom">No custom companies yet — add one above</div>`;
+
+  // Build custom stock grid
+  const customStGrid = customSts.length
+    ? `<div class="watch-grid">${customSts.map(s => `
+        <div class="watch-item custom">
+          <div>
+            <div>${esc(s.name)}</div>
+            <div class="wt">${esc(s.ticker)}</div>
+            <div class="custom-label">custom</div>
+          </div>
+          <button class="del-btn" data-ticker="${esc(s.ticker)}" onclick="removeStock(this)" title="Remove">×</button>
+        </div>`).join('')}</div>`
+    : `<div class="empty-custom">No custom stocks yet — add one above</div>`;
+
+  // Default grids (from server alerts.json)
+  const defaultCoGrid = cos.length
+    ? `<div class="watch-grid">${cos.map(c => `<div class="watch-item">${esc(c)}</div>`).join('')}</div>`
+    : `<div class="empty-custom">Loading…</div>`;
+
+  const defaultStGrid = Object.keys(sts).length
+    ? `<div class="watch-grid">${Object.entries(sts).map(([n,t]) =>
+        `<div class="watch-item">${esc(n)}<div class="wt">${esc(t)}</div></div>`).join('')}</div>`
+    : `<div class="empty-custom">Loading…</div>`;
+
+  // Token section
+  const tokenSection = token
+    ? `<div class="token-card">
+        <h3>⚙️ Cloud Sync</h3>
+        <div class="token-note">
+          GitHub token saved — custom additions will be monitored by the cloud scanner on the next scheduled run.
+        </div>
+        <button class="clear-token-btn" onclick="clearToken()">Remove saved token</button>
+        <div id="sync-status" class="sync-status"></div>
+      </div>`
+    : `<div class="token-card">
+        <h3>⚙️ Enable Cloud Sync (optional)</h3>
+        <div class="token-note">
+          Without a token your additions are visible here but <b>not monitored by the cloud scanner</b>.
+          Add a GitHub token to sync — the scanner will then watch your custom companies too.<br><br>
+          <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=IPO+Tracker+Sync" target="_blank">Create a token (public_repo scope) →</a>
+        </div>
+        <div class="add-row">
+          <input id="gh-token-input" class="add-input" type="password" placeholder="ghp_…"
+                 onkeydown="if(event.key==='Enter')saveToken()">
+          <button class="add-btn" onclick="saveToken()">Save</button>
+        </div>
+        <div id="sync-status" class="sync-status"></div>
+      </div>`;
+
   document.getElementById('panel-watchlist').innerHTML = `
+
+    <!-- ── Custom IPO companies ── -->
     <div class="watch-section">
-      <h3>📋 IPO Watch — ${cos.length} companies</h3>
-      <div class="watch-grid">${cos.map(c => `<div class="watch-item">${c}</div>`).join('')}</div>
+      <div class="section-header">
+        <h3>➕ Add IPO Company${customCos.length ? ` (${customCos.length})` : ''}</h3>
+      </div>
+      <div class="add-row">
+        <input id="add-co-input" class="add-input" placeholder="e.g. Stripe, Discord, Reddit…"
+               onkeydown="if(event.key==='Enter')addIPOCompany()">
+        <button class="add-btn" onclick="addIPOCompany()">Add</button>
+      </div>
+      ${customCoGrid}
     </div>
+
+    <!-- ── Custom stocks ── -->
     <div class="watch-section">
-      <h3>📈 Buy Signal Watch — ${Object.keys(sts).length} stocks</h3>
-      <div class="watch-grid">${Object.entries(sts).map(([n,t]) =>
-        `<div class="watch-item">${n}<div class="wt">${t}</div></div>`).join('')}</div>
+      <div class="section-header">
+        <h3>➕ Add Stock for Signals${customSts.length ? ` (${customSts.length})` : ''}</h3>
+      </div>
+      <div class="add-row">
+        <input id="add-st-name" class="add-input" placeholder="Company name" style="flex:2"
+               onkeydown="if(event.key==='Enter')document.getElementById('add-st-ticker').focus()">
+        <input id="add-st-ticker" class="add-input" placeholder="Ticker" style="flex:1;text-transform:uppercase"
+               onkeydown="if(event.key==='Enter')addStock()">
+        <button class="add-btn" onclick="addStock()">Add</button>
+      </div>
+      ${customStGrid}
     </div>
-    <div class="card" style="font-size:12px;color:var(--muted);line-height:1.7">
+
+    <!-- ── Default IPO watch ── -->
+    <div class="watch-section">
+      <h3>📋 Default IPO Watch — ${cos.length} companies</h3>
+      ${defaultCoGrid}
+    </div>
+
+    <!-- ── Default stocks ── -->
+    <div class="watch-section">
+      <h3>📈 Default Buy Signal Watch — ${Object.keys(sts).length} stocks</h3>
+      ${defaultStGrid}
+    </div>
+
+    <!-- ── Signal thresholds ── -->
+    <div class="card" style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:16px">
       <b style="color:var(--text)">Signal thresholds</b><br>
       🔥 Volume ≥ 2.5× 20-day avg + Price ≥ +4%<br>
       ⚡ RSI ≥ 68 with volume surge ≥ 1.5×<br>
       ⭐ 50-day MA crosses above 200-day MA (Golden Cross)
-    </div>`;
+    </div>
+
+    ${tokenSection}`;
 }
 
 // ── Data loading ──────────────────────────────────────────────────────────────
@@ -426,7 +755,6 @@ async function loadData() {
     if (!res.ok) throw new Error();
     const data = await res.json();
 
-    // Play sound if new alerts arrived since last check
     const newIPO = (data.ipo_alerts||[]).length;
     const newSig = (data.buy_signals||[]).length;
     if ((newIPO > lastKnownIPO || newSig > lastKnownSig) && (lastKnownIPO + lastKnownSig > 0)) {
@@ -434,7 +762,9 @@ async function loadData() {
     }
     lastKnownIPO = newIPO; lastKnownSig = newSig;
 
-    renderIPO(data); renderSignals(data); renderWatchlist(data);
+    renderIPO(data);
+    renderSignals(data);
+    renderWatchlist(data);
 
     const lu = data.last_updated
       ? new Date(data.last_updated).toLocaleString() : '—';
@@ -446,6 +776,12 @@ async function loadData() {
     document.getElementById('ri').classList.remove('spin');
   }
 }
+
+// ── Initialise ────────────────────────────────────────────────────────────────
+fetchCustomWatches().then(() => {
+  // Re-render watchlist after custom data loads (if server data already arrived)
+  if (Object.keys(_serverData).length) renderWatchlistPanel();
+});
 
 loadData();
 setInterval(loadData, 5 * 60 * 1000);   // auto-refresh every 5 min
