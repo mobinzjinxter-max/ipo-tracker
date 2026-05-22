@@ -1,7 +1,21 @@
 {
   "ipo_alerts": [],
-  "buy_signals": [],
-  "last_updated": "2026-05-22T13:19:32Z",
+  "buy_signals": [
+    {
+      "name": "Astera Labs",
+      "ticker": "ALAB",
+      "price": 304.76,
+      "price_chg_pct": 2.32,
+      "vol_ratio": 0.64,
+      "rsi": 78.2,
+      "signals": [
+        "Golden Cross \u2014 50MA crossed above 200MA"
+      ],
+      "date": "2026-05-22",
+      "timestamp": "2026-05-22T17:01:01.526053"
+    }
+  ],
+  "last_updated": "2026-05-22T17:01:02Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
