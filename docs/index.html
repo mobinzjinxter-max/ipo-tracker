@@ -1,635 +1,932 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="IPO Tracker" />
-  <meta name="theme-color" content="#0d1117" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon.png" />
-  <title>IPO & Stock Tracker</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="IPO Tracker"/>
+  <meta name="theme-color" content="#141519"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon.png"/>
+  <title>IPO Tracker</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
     :root {
-      --bg:      #0d1117; --surface: #161b22; --border: #30363d;
-      --green:   #3fb950; --yellow:  #d29922; --blue:   #58a6ff;
-      --red:     #f85149; --text:    #e6edf3; --muted:  #8b949e;
-      --radius:  14px;
-    }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-      min-height: 100vh;
+      --bg:        #141519;
+      --surface:   #1e1f28;
+      --elevated:  #272834;
+      --line:      rgba(255,255,255,0.06);
+      --green:     #00C896;
+      --green-bg:  rgba(0,200,150,0.13);
+      --red:       #FF5252;
+      --red-bg:    rgba(255,82,82,0.13);
+      --blue:      #4B84FF;
+      --blue-bg:   rgba(75,132,255,0.13);
+      --amber:     #F5A623;
+      --amber-bg:  rgba(245,166,35,0.13);
+      --purple:    #B57BFF;
+      --text:      #E8E9F0;
+      --sub:       #A0A3B8;
+      --muted:     #6C6F88;
+      --radius:    14px;
+      --nav-h:     60px;
+      --header-h:  56px;
+      --safe-top:  env(safe-area-inset-top, 0px);
+      --safe-bot:  env(safe-area-inset-bottom, 0px);
     }
 
-    /* ── Header ── */
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      font-size: 15px;
+      overscroll-behavior: none;
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
     header {
-      position: sticky; top: 0; z-index: 10;
-      background: rgba(13,17,23,0.88);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      padding: calc(env(safe-area-inset-top) + 14px) 18px 14px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: calc(var(--header-h) + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: rgba(20,21,25,0.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding-left: 18px; padding-right: 14px;
     }
-    .header-title  { font-size: 18px; font-weight: 700; }
+    .header-brand {
+      display: flex; align-items: center; gap: 9px;
+    }
+    .header-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse-dot 2.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+    .header-title { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
     .header-title span { color: var(--green); }
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-    .icon-btn {
-      background: none; border: 1px solid var(--border);
-      color: var(--muted); border-radius: 8px;
-      padding: 6px 11px; font-size: 13px; cursor: pointer;
-      display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    .header-actions { display: flex; gap: 4px; }
+    .hdr-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: none; border: none; color: var(--muted);
+      font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
-    .icon-btn:active { opacity: 0.6; }
-    .icon-btn.active { border-color: var(--green); color: var(--green); }
-    .spin { animation: spin 1s linear infinite; display: inline-block; }
+    .hdr-btn:active { background: var(--surface); }
+    .hdr-btn.on { color: var(--green); }
+    .spin { animation: spin .9s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Banners ── */
-    #bell-banner {
-      background: rgba(88,166,255,0.1); border-bottom: 1px solid rgba(88,166,255,0.2);
-      padding: 10px 18px; font-size: 13px; color: var(--blue);
+    /* ── Banners ────────────────────────────────────────────────── */
+    .banner {
+      position: fixed; left: 0; right: 0; z-index: 99;
+      top: calc(var(--header-h) + var(--safe-top));
+      padding: 11px 18px; font-size: 13px;
       display: flex; justify-content: space-between; align-items: center;
+      gap: 10px;
     }
-    #bell-banner button {
-      background: var(--blue); color: #000;
-      border: none; border-radius: 8px;
-      padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+    .banner-install {
+      background: var(--amber-bg);
+      border-bottom: 1px solid rgba(245,166,35,.2);
+      color: var(--amber);
     }
+    .banner-push {
+      background: var(--blue-bg);
+      border-bottom: 1px solid rgba(75,132,255,.2);
+      color: var(--blue);
+    }
+    .banner-btn {
+      flex-shrink: 0; padding: 6px 14px; border: none; border-radius: 20px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .banner-btn-blue { background: var(--blue); color: #fff; }
+    .banner-btn-amber { background: var(--amber); color: #000; }
 
-    /* ── Sub display for subscription copy ── */
+    /* ── Sub JSON box ───────────────────────────────────────────── */
     #sub-box {
-      background: var(--surface); border: 1px solid var(--border);
-      margin: 12px 16px; border-radius: var(--radius);
-      padding: 12px; font-size: 11px; display: none;
+      position: fixed; left: 12px; right: 12px;
+      top: calc(var(--header-h) + var(--safe-top) + 8px);
+      z-index: 200;
+      background: var(--elevated); border-radius: var(--radius);
+      padding: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.6);
+      display: none;
     }
-    #sub-box p { color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+    #sub-box p { font-size: 12px; color: var(--sub); margin-bottom: 10px; line-height: 1.5; }
     #sub-json {
-      background: var(--bg); border-radius: 8px; padding: 8px;
+      background: var(--bg); border-radius: 8px; padding: 10px;
       font-family: monospace; font-size: 10px; color: var(--green);
-      word-break: break-all; max-height: 80px; overflow-y: auto;
-      margin-bottom: 8px;
+      word-break: break-all; max-height: 90px; overflow-y: auto; margin-bottom: 10px;
     }
     #copy-btn {
-      background: var(--green); color: #000; border: none;
-      border-radius: 8px; padding: 7px 14px;
-      font-size: 12px; font-weight: 700; cursor: pointer; width: 100%;
+      width: 100%; background: var(--green); color: #000;
+      border: none; border-radius: 10px; padding: 11px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
     }
 
-    /* ── Tabs ── */
-    .tabs {
-      display: flex; border-bottom: 1px solid var(--border);
-      background: var(--bg); position: sticky; top: 57px; z-index: 9;
-    }
-    .tab {
-      flex: 1; padding: 12px 4px; text-align: center;
-      font-size: 13px; font-weight: 600; color: var(--muted);
-      cursor: pointer; border-bottom: 2px solid transparent;
-      transition: all .2s; user-select: none;
-    }
-    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
-    .badge {
-      display: inline-block; background: var(--red); color: #fff;
-      border-radius: 10px; font-size: 10px; font-weight: 700;
-      padding: 1px 5px; margin-left: 4px; vertical-align: middle;
+    /* ── Main scrollable area ───────────────────────────────────── */
+    main {
+      position: fixed; left: 0; right: 0;
+      top: calc(var(--header-h) + var(--safe-top));
+      bottom: calc(var(--nav-h) + var(--safe-bot));
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
 
-    /* ── Panels ── */
-    .panel { display: none; padding: 16px; }
+    /* ── Panels ─────────────────────────────────────────────────── */
+    .panel { display: none; min-height: 100%; }
     .panel.active { display: block; }
 
-    /* ── Cards ── */
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
+    /* ── Summary strip (top of each panel) ─────────────────────── */
+    .summary-strip {
+      padding: 12px 18px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--line);
     }
-    .card-header {
-      display: flex; justify-content: space-between;
-      align-items: flex-start; margin-bottom: 8px;
+    .summary-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .summary-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 9px;
+      border-radius: 20px; background: var(--green-bg); color: var(--green);
     }
-    .company-name { font-size: 16px; font-weight: 700; }
-    .ticker-badge {
-      background: rgba(88,166,255,0.15); color: var(--blue);
-      border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700;
-    }
-    .card-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-    .ipo-pill {
-      display: inline-block; background: rgba(63,185,80,0.15);
-      color: var(--green); border-radius: 20px;
-      padding: 4px 12px; font-size: 12px; font-weight: 600;
-    }
-    .ipo-link {
-      display: block; margin-top: 10px;
-      color: var(--blue); font-size: 13px; text-decoration: none;
-    }
-    .price-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-    .stat {
-      background: rgba(255,255,255,0.05); border-radius: 8px;
-      padding: 6px 10px; flex: 1; min-width: 60px;
-    }
-    .stat-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
-    .stat-value { font-size: 15px; font-weight: 700; }
-    .positive { color: var(--green); }
-    .negative { color: var(--red); }
-    .signal-tag {
-      display: inline-block; border-radius: 6px;
-      padding: 3px 8px; font-size: 11px; font-weight: 600; margin: 3px 3px 0 0;
-    }
-    .sig-vol    { background: rgba(248,81,73,0.15);  color: #ff7b72; }
-    .sig-rsi    { background: rgba(88,166,255,0.15); color: var(--blue); }
-    .sig-golden { background: rgba(210,153,34,0.15); color: var(--yellow); }
+    .summary-badge.none { background: rgba(255,255,255,.06); color: var(--muted); }
 
-    /* ── Watchlist base ── */
-    .watch-section { margin-bottom: 22px; }
-    .watch-section h3 {
-      font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
-      color: var(--muted); margin-bottom: 10px;
+    /* ── Section headers ────────────────────────────────────────── */
+    .section-head {
+      padding: 16px 18px 6px;
+      font-size: 11px; font-weight: 600; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--muted);
     }
-    .watch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .watch-item {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 500;
-    }
-    .watch-item .wt { font-size: 11px; color: var(--blue); margin-top: 2px; }
 
-    /* ── IPO date rows ── */
-    .watch-date-item {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 11px 14px; margin-bottom: 8px;
-      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    /* ── Instrument row (list item) ─────────────────────────────── */
+    .row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      cursor: default; transition: background .15s;
     }
-    .wdi-name { font-size: 14px; font-weight: 600; }
-    .wdi-note { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
-    .date-pill {
-      font-size: 11px; font-weight: 700; border-radius: 20px;
-      padding: 4px 10px; white-space: nowrap; flex-shrink: 0; text-align: center;
-    }
-    .date-pill.listed   { background: rgba(63,185,80,0.18);   color: var(--green); }
-    .date-pill.expected { background: rgba(88,166,255,0.18);  color: var(--blue);  }
-    .date-pill.tbd      { background: rgba(139,148,158,0.15); color: var(--muted); }
-    .legend-row {
-      display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
-    }
-    .legend-item { font-size: 11px; display: flex; align-items: center; gap: 5px; color: var(--muted); }
+    .row:active { background: rgba(255,255,255,.03); }
 
-    /* ── Watchlist edit controls ── */
-    .section-header {
-      display: flex; justify-content: space-between;
-      align-items: center; margin-bottom: 10px;
+    /* Avatar circle */
+    .avatar {
+      width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; letter-spacing: -.5px;
     }
-    .section-header h3 { margin-bottom: 0; }
-    .add-row {
-      display: flex; gap: 7px; margin-bottom: 12px;
+
+    /* Row body */
+    .row-body { flex: 1; min-width: 0; }
+    .row-name {
+      font-size: 15px; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .row-sub {
+      font-size: 12px; color: var(--sub); margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Row right side */
+    .row-right { flex-shrink: 0; text-align: right; }
+    .row-value { font-size: 15px; font-weight: 700; }
+    .row-change { font-size: 12px; margin-top: 3px; }
+
+    /* Pill badges */
+    .pill {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: .02em;
+    }
+    .pill-green  { background: var(--green-bg);  color: var(--green); }
+    .pill-red    { background: var(--red-bg);    color: var(--red);   }
+    .pill-blue   { background: var(--blue-bg);   color: var(--blue);  }
+    .pill-amber  { background: var(--amber-bg);  color: var(--amber); }
+    .pill-muted  { background: rgba(255,255,255,.07); color: var(--muted); }
+    .pill-purple { background: rgba(181,123,255,.13); color: var(--purple); }
+
+    /* Signal tags (inline) */
+    .sig-tag {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 7px; border-radius: 6px; margin: 2px 3px 0 0;
+    }
+    .sig-vol    { background: var(--red-bg);    color: var(--red);   }
+    .sig-rsi    { background: var(--blue-bg);   color: var(--blue);  }
+    .sig-golden { background: var(--amber-bg);  color: var(--amber); }
+
+    /* ── Empty state ────────────────────────────────────────────── */
+    .empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 64px 32px; text-align: center;
+    }
+    .empty-icon { font-size: 44px; margin-bottom: 14px; }
+    .empty-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── Watchlist custom add ───────────────────────────────────── */
+    .add-section {
+      margin: 0; padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .add-section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--muted); margin-bottom: 10px;
+    }
+    .add-row { display: flex; gap: 8px; }
     .add-input {
-      flex: 1; background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); border-radius: 8px; padding: 9px 12px;
+      flex: 1; background: var(--surface); border: 1.5px solid transparent;
+      color: var(--text); border-radius: 10px; padding: 10px 14px;
       font-size: 14px; outline: none;
-      -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
+      -webkit-appearance: none;
+      transition: border-color .2s;
     }
-    .add-input:focus { border-color: var(--blue); }
+    .add-input:focus { border-color: var(--green); }
     .add-input::placeholder { color: var(--muted); }
     .add-btn {
       background: var(--green); color: #000; border: none;
-      border-radius: 8px; padding: 9px 16px;
-      font-size: 14px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+      border-radius: 10px; padding: 10px 18px;
+      font-size: 14px; font-weight: 800; cursor: pointer; flex-shrink: 0;
     }
-    .add-btn:active { opacity: 0.7; }
-    .watch-item.custom {
-      border-color: rgba(210,153,34,0.45);
-      display: flex; justify-content: space-between;
-      align-items: center; gap: 6px;
-    }
-    .watch-item.custom .wt { color: var(--yellow); }
-    .custom-label {
-      font-size: 9px; color: var(--yellow); font-weight: 700;
-      text-transform: uppercase; letter-spacing: .06em; margin-top: 3px;
-    }
-    .del-btn {
-      background: none; border: none; color: var(--muted);
-      font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1;
-      flex-shrink: 0; border-radius: 4px;
-    }
-    .del-btn:active { color: var(--red); }
+    .add-btn:active { opacity: .75; }
     .empty-custom {
-      font-size: 12px; color: var(--muted); margin-bottom: 12px;
-      padding: 10px 12px; border-radius: 8px;
-      border: 1px dashed var(--border); text-align: center;
+      padding: 12px 0 4px; font-size: 13px; color: var(--muted);
+      text-align: center;
     }
 
-    /* ── Sync / token card ── */
-    .token-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px; margin-top: 4px;
+    /* Custom row with delete */
+    .row-del {
+      background: none; border: none; color: var(--muted);
+      font-size: 22px; cursor: pointer; padding: 4px; line-height: 1;
+      flex-shrink: 0;
     }
-    .token-card h3 {
-      font-size: 12px; color: var(--muted); margin-bottom: 10px;
-      text-transform: uppercase; letter-spacing: .08em;
-    }
-    .token-note {
-      font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 12px;
-    }
-    .token-note a { color: var(--blue); }
-    .sync-status {
-      font-size: 12px; text-align: center; padding: 8px 10px;
-      border-radius: 8px; margin-top: 10px; display: none; line-height: 1.4;
-    }
-    .sync-ok  { background: rgba(63,185,80,0.12);  color: var(--green); display: block; }
-    .sync-err { background: rgba(248,81,73,0.12);  color: var(--red);   display: block; }
-    .clear-token-btn {
-      font-size: 11px; color: var(--red); background: none;
-      border: none; cursor: pointer; padding: 6px 0 0; display: block;
-    }
+    .row-del:active { color: var(--red); }
 
-    /* ── Empty state ── */
-    .empty {
-      text-align: center; padding: 48px 24px;
-      color: var(--muted); font-size: 14px; line-height: 1.6;
-    }
-    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+    /* IPO date rows */
+    .date-pill { }
+    .date-pill.listed   { }
+    .date-pill.expected { }
+    .date-pill.tbd      { }
 
-    /* ── Status bar ── */
-    .status-bar {
+    /* ── Settings tab ───────────────────────────────────────────── */
+    .settings-section {
+      padding: 20px 18px 0;
+    }
+    .settings-section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--muted); margin-bottom: 12px;
+    }
+    .settings-card {
+      background: var(--surface); border-radius: var(--radius);
+      overflow: hidden; margin-bottom: 20px;
+    }
+    .settings-row {
+      display: flex; align-items: center;
+      padding: 14px 16px; gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-icon { font-size: 20px; flex-shrink: 0; }
+    .settings-row-body { flex: 1; }
+    .settings-row-title { font-size: 15px; font-weight: 500; }
+    .settings-row-sub { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+    .settings-row-action { flex-shrink: 0; }
+    .settings-btn {
+      padding: 8px 16px; border-radius: 20px; border: none;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .settings-btn-green { background: var(--green-bg); color: var(--green); }
+    .settings-btn-red   { background: var(--red-bg);   color: var(--red);   }
+    .settings-btn-blue  { background: var(--blue-bg);  color: var(--blue);  }
+    .settings-input {
+      width: 100%; background: var(--elevated); border: 1.5px solid var(--line);
+      color: var(--text); border-radius: 10px; padding: 10px 14px;
+      font-size: 14px; outline: none; margin-top: 8px;
+      -webkit-appearance: none;
+    }
+    .settings-input:focus { border-color: var(--green); }
+    .settings-input::placeholder { color: var(--muted); }
+    .sync-msg {
+      font-size: 12px; padding: 8px 12px; border-radius: 8px; margin-top: 8px;
+      display: none; line-height: 1.4;
+    }
+    .sync-ok  { background: var(--green-bg); color: var(--green); display: block; }
+    .sync-err { background: var(--red-bg);   color: var(--red);   display: block; }
+
+    /* threshold info */
+    .thresh-item {
+      display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .thresh-item:last-child { border-bottom: none; }
+    .thresh-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .thresh-label { font-size: 14px; flex: 1; }
+    .thresh-value { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+    /* ── Bottom navigation ──────────────────────────────────────── */
+    nav.bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+      height: calc(var(--nav-h) + var(--safe-bot));
+      padding-bottom: var(--safe-bot);
+      background: rgba(20,21,25,0.96);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--line);
+      display: flex;
+    }
+    .nav-btn {
+      flex: 1; background: none; border: none; cursor: pointer;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px;
+      color: var(--muted); transition: color .2s;
+      padding: 6px 0;
+    }
+    .nav-btn.active { color: var(--green); }
+    .nav-icon { font-size: 22px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .04em; }
+    .nav-badge {
+      position: absolute; top: -3px; right: -5px;
+      background: var(--red); color: #fff; border-radius: 10px;
+      font-size: 9px; font-weight: 800; padding: 1px 4px; min-width: 14px;
+      text-align: center;
+    }
+    .nav-icon-wrap { position: relative; display: inline-block; }
+
+    /* ── Status ticker ──────────────────────────────────────────── */
+    .status-tick {
       text-align: center; font-size: 11px; color: var(--muted);
-      padding: 8px; border-top: 1px solid var(--border);
+      padding: 12px 18px 20px;
     }
-    .dot {
-      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green); margin-right: 5px;
-      animation: pulse 2s ease-in-out infinite;
+    .live-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); margin-right: 5px; vertical-align: middle;
+      animation: pulse-dot 2.5s ease-in-out infinite;
     }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── Legend ─────────────────────────────────────────────────── */
+    .legend {
+      display: flex; gap: 8px; padding: 10px 18px 4px; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--muted);
+    }
   </style>
 </head>
 <body>
 
-<!-- Hidden audio element for the boeingboeing alert sound -->
 <audio id="alert-audio" src="alert.mp3" preload="auto"></audio>
 
+<!-- ── Header ── -->
 <header>
-  <div class="header-title">📊 IPO &amp; <span>Stock</span> Tracker</div>
+  <div class="header-brand">
+    <div class="header-dot"></div>
+    <div class="header-title">IPO &amp; <span>Stock</span> Tracker</div>
+  </div>
   <div class="header-actions">
-    <button class="icon-btn" id="bell-btn" onclick="toggleNotifications()">🔔 Alerts</button>
-    <button class="icon-btn" onclick="loadData()"><span id="ri">↻</span></button>
+    <button class="hdr-btn" id="bell-btn" onclick="toggleNotifications()" title="Notifications">🔔</button>
+    <button class="hdr-btn" onclick="loadData()" title="Refresh"><span id="ri">↻</span></button>
   </div>
 </header>
 
-<!-- Install to home screen prompt (shown in Safari browser, not standalone) -->
-<div id="install-banner" style="display:none;background:rgba(210,153,34,0.12);border-bottom:1px solid rgba(210,153,34,0.3);padding:12px 18px;font-size:13px;color:#d29922;line-height:1.5">
-  <strong>📲 Add to Home Screen first</strong><br>
-  Tap the <strong>Share button</strong> (↑) in Safari → <strong>"Add to Home Screen"</strong> → then open the app from your home screen to enable notifications.
+<!-- ── Install banner ── -->
+<div id="install-banner" class="banner banner-install" style="display:none">
+  <span>📲 <strong>Add to Home Screen</strong> first — tap Share (↑) → Add to Home Screen</span>
 </div>
 
-<!-- Bell setup banner (shown when notifications not yet enabled) -->
-<div id="bell-banner" style="display:none;background:rgba(88,166,255,0.1);border-bottom:1px solid rgba(88,166,255,0.2);padding:10px 18px;font-size:13px;color:#58a6ff;display:none;justify-content:space-between;align-items:center">
-  <span>Enable push notifications to get alerted instantly</span>
-  <button onclick="enableNotifications()" style="background:#58a6ff;color:#000;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">Enable</button>
+<!-- ── Push banner ── -->
+<div id="bell-banner" class="banner banner-push" style="display:none">
+  <span>Enable push alerts for real-time IPO &amp; signal notifications</span>
+  <button class="banner-btn banner-btn-blue" onclick="enableNotifications()">Enable</button>
 </div>
 
-<!-- Subscription copy box (shown after subscribing) -->
+<!-- ── Sub JSON box ── -->
 <div id="sub-box">
-  <p>📋 <strong>One-time setup:</strong> Copy this JSON and send it to Claude so push notifications can reach your phone.</p>
+  <p>📋 <strong>One-time setup:</strong> Copy this JSON and paste it into Claude to activate push notifications on your phone.</p>
   <div id="sub-json"></div>
   <button id="copy-btn" onclick="copySubJSON()">📋 Copy Subscription JSON</button>
 </div>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('ipo')">🟢 IPO Alerts<span id="ipo-badge"></span></div>
-  <div class="tab"        onclick="switchTab('signals')">📈 Buy Signals<span id="sig-badge"></span></div>
-  <div class="tab"        onclick="switchTab('watchlist')">👁 Watchlist</div>
-</div>
+<!-- ── Main panels ── -->
+<main>
 
-<div id="panel-ipo"       class="panel active"></div>
-<div id="panel-signals"   class="panel"></div>
-<div id="panel-watchlist" class="panel"></div>
+  <!-- IPO Alerts -->
+  <div id="panel-ipo" class="panel active">
+    <div class="summary-strip">
+      <span class="summary-label" id="ipo-summary">Monitoring companies for 424B4 filings…</span>
+      <span class="summary-badge none" id="ipo-badge-strip">0 alerts</span>
+    </div>
+    <div id="ipo-list"></div>
+  </div>
 
-<div class="status-bar" id="status-bar">Loading...</div>
+  <!-- Buy Signals -->
+  <div id="panel-signals" class="panel">
+    <div class="summary-strip">
+      <span class="summary-label" id="sig-summary">Scanning volume, RSI &amp; Golden Cross…</span>
+      <span class="summary-badge none" id="sig-badge-strip">0 signals</span>
+    </div>
+    <div id="sig-list"></div>
+  </div>
+
+  <!-- Watchlist -->
+  <div id="panel-watchlist" class="panel">
+    <div id="watchlist-content"></div>
+  </div>
+
+  <!-- Settings -->
+  <div id="panel-settings" class="panel">
+    <div class="settings-section">
+      <div class="settings-section-title">🔔 Push Notifications</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div class="settings-row-icon">🔔</div>
+          <div class="settings-row-body">
+            <div class="settings-row-title" id="push-status-title">Notifications</div>
+            <div class="settings-row-sub" id="push-status-sub">Tap Enable to set up push alerts</div>
+          </div>
+          <div class="settings-row-action">
+            <button class="settings-btn settings-btn-green" id="push-action-btn" onclick="enableNotifications()">Enable</button>
+          </div>
+        </div>
+        <div class="settings-row" id="sub-json-row" style="display:none; flex-direction:column; align-items:flex-start">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
+            📋 Copy this JSON and send to Claude to activate cloud push delivery:
+          </div>
+          <div id="sub-json-settings" style="background:var(--bg);border-radius:8px;padding:10px;font-family:monospace;font-size:10px;color:var(--green);word-break:break-all;max-height:70px;overflow-y:auto;width:100%;margin-bottom:8px"></div>
+          <button onclick="copySubJSONSettings()" style="background:var(--green-bg);color:var(--green);border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer">📋 Copy JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">☁️ Cloud Sync</div>
+      <div class="settings-card">
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start">
+          <div style="display:flex;align-items:center;gap:10px;width:100%;margin-bottom:8px">
+            <div class="settings-row-icon">🔑</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">GitHub Token</div>
+              <div class="settings-row-sub" id="token-status">
+                Enter a token to sync custom watchlist to the cloud scanner
+              </div>
+            </div>
+          </div>
+          <input id="gh-token-input" class="settings-input" type="password"
+                 placeholder="ghp_… (public_repo scope)"
+                 onkeydown="if(event.key==='Enter')saveToken()">
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="settings-btn settings-btn-green" onclick="saveToken()">Save Token</button>
+            <button class="settings-btn settings-btn-red" id="clear-token-btn" onclick="clearToken()" style="display:none">Remove</button>
+          </div>
+          <div id="sync-status" class="sync-msg"></div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5">
+            Token stored on this device only.
+            <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=IPO+Tracker" target="_blank" style="color:var(--blue)">Create token →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">📊 Signal Thresholds</div>
+      <div class="settings-card">
+        <div class="thresh-item">
+          <div class="thresh-dot" style="background:var(--red)"></div>
+          <div class="thresh-label">🔥 Volume surge</div>
+          <div class="thresh-value">≥ 2.5× 20-day avg + Price ≥ +4%</div>
+        </div>
+        <div class="thresh-item">
+          <div class="thresh-dot" style="background:var(--blue)"></div>
+          <div class="thresh-label">⚡ RSI breakout</div>
+          <div class="thresh-value">RSI ≥ 68 with volume ≥ 1.5×</div>
+        </div>
+        <div class="thresh-item">
+          <div class="thresh-dot" style="background:var(--amber)"></div>
+          <div class="thresh-label">⭐ Golden Cross</div>
+          <div class="thresh-value">50MA crosses above 200MA</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section" style="padding-bottom:24px">
+      <div class="settings-section-title">ℹ️ About</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div class="settings-row-icon">🕐</div>
+          <div class="settings-row-body">
+            <div class="settings-row-title">Scan schedule</div>
+            <div class="settings-row-sub">4× daily — 7am, 11am, 3pm, 7pm UTC via GitHub Actions</div>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-icon">📡</div>
+          <div class="settings-row-body">
+            <div class="settings-row-title">Last updated</div>
+            <div class="settings-row-sub" id="last-updated-row">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /settings -->
+
+</main>
+
+<!-- ── Bottom navigation ── -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-ipo" onclick="switchTab('ipo')">
+    <span class="nav-icon-wrap">
+      <span class="nav-icon">🟢</span>
+      <span class="nav-badge" id="nav-badge-ipo" style="display:none">0</span>
+    </span>
+    <span class="nav-label">IPO</span>
+  </button>
+  <button class="nav-btn" id="nav-signals" onclick="switchTab('signals')">
+    <span class="nav-icon-wrap">
+      <span class="nav-icon">📈</span>
+      <span class="nav-badge" id="nav-badge-sig" style="display:none">0</span>
+    </span>
+    <span class="nav-label">Signals</span>
+  </button>
+  <button class="nav-btn" id="nav-watchlist" onclick="switchTab('watchlist')">
+    <span class="nav-icon">⭐</span>
+    <span class="nav-label">Watchlist</span>
+  </button>
+  <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Settings</span>
+  </button>
+</nav>
 
 <script>
-// ── VAPID public key ──────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════
 const VAPID_PUBLIC_KEY = 'BBojiGk0fn_rVfLh0lbIicFyVhuQbzJ_DaCIOEJNd8c13lGUp75axP62DpHIsy-KOplwvIfmrKN6Wd4m4n_DvZk';
-
-// GitHub repo for custom watchlist sync
 const REPO        = 'mobinzjinxter-max/ipo-tracker';
 const CUSTOM_PATH = 'docs/custom_watches.json';
 
-// ── Audio ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// AUDIO
+// ════════════════════════════════════════════════════════════════
 const audio = document.getElementById('alert-audio');
-function playAlertSound() {
-  audio.currentTime = 0;
-  audio.play().catch(() => {});
-}
-if (new URLSearchParams(location.search).get('notify') === '1') {
+function playAlertSound() { audio.currentTime = 0; audio.play().catch(()=>{}); }
+if (new URLSearchParams(location.search).get('notify') === '1')
   window.addEventListener('load', () => setTimeout(playAlertSound, 300));
-}
 
-// ── iOS standalone detection ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// iOS DETECTION
+// ════════════════════════════════════════════════════════════════
 const isStandalone = window.navigator.standalone === true;
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+if (isIOS && !isStandalone) document.getElementById('install-banner').style.display = 'flex';
 
-function checkInstallBanner() {
-  if (isIOS && !isStandalone) {
-    document.getElementById('install-banner').style.display = 'block';
-    document.getElementById('bell-btn').title = 'Add to Home Screen first';
-  }
-}
-checkInstallBanner();
-
-// ── Service Worker registration ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// SERVICE WORKER & PUSH
+// ════════════════════════════════════════════════════════════════
 let swReg = null;
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    swReg = reg;
-    checkBellBanner();
-  }).catch(err => console.warn('SW error:', err));
-
+  navigator.serviceWorker.register('sw.js')
+    .then(r => { swReg = r; checkPushState(); })
+    .catch(e => console.warn('SW:', e));
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data?.type === 'PLAY_SOUND') playAlertSound();
   });
 }
 
-// ── Push notification helpers ─────────────────────────────────────────────────
 function urlB64ToUint8Array(b64) {
-  const pad  = '='.repeat((4 - b64.length % 4) % 4);
-  const raw  = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64+pad).replace(/-/g,'+').replace(/_/g,'/'));
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-async function checkBellBanner() {
-  if (!('Notification' in window) || !swReg) return;
-  const perm = Notification.permission;
-  if (perm === 'default' && isStandalone) {
+function checkPushState() {
+  if (!('Notification' in window)) return;
+  const p = Notification.permission;
+  if (p === 'granted') {
+    document.getElementById('bell-btn').classList.add('on');
+    document.getElementById('bell-btn').textContent = '🔔';
+    document.getElementById('push-status-title').textContent = 'Notifications active';
+    document.getElementById('push-status-sub').textContent = 'Push alerts are enabled on this device';
+    document.getElementById('push-action-btn').textContent = 'View JSON';
+    document.getElementById('push-action-btn').onclick = showSubJSON;
+    if (localStorage.getItem('push_sub')) {
+      document.getElementById('sub-json-settings').textContent = localStorage.getItem('push_sub');
+      document.getElementById('sub-json-row').style.display = 'flex';
+    }
+  } else if (p === 'default' && isStandalone) {
     document.getElementById('bell-banner').style.display = 'flex';
-  } else if (perm === 'granted') {
-    document.getElementById('bell-btn').classList.add('active');
-    document.getElementById('bell-btn').textContent = '🔔 On';
   }
 }
 
 async function enableNotifications() {
   if (isIOS && !isStandalone) {
-    alert('Please add this app to your Home Screen first.\n\nTap Share (↑) → Add to Home Screen → open from your home screen.');
+    alert('Add this app to your Home Screen first.\nTap Share → Add to Home Screen → open from home screen.');
     return;
   }
-  if (!swReg) return alert('Service worker not ready — wait a moment and try again.');
+  if (!swReg) return alert('Service worker not ready — try again in a moment.');
   const perm = await Notification.requestPermission();
-  if (perm !== 'granted') return alert('Permission denied.\n\nGo to Settings → Notifications → find this app and allow notifications.');
-
+  if (perm !== 'granted') return alert('Permission denied.\nGo to Settings → Notifications and allow this app.');
   const sub = await swReg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY),
   });
-
-  document.getElementById('bell-banner').style.display = 'none';
-  document.getElementById('bell-btn').classList.add('active');
-  document.getElementById('bell-btn').textContent = '🔔 On';
-
   const subJSON = JSON.stringify(sub.toJSON(), null, 2);
-  document.getElementById('sub-json').textContent = subJSON;
-  document.getElementById('sub-box').style.display = 'block';
   localStorage.setItem('push_sub', subJSON);
+  document.getElementById('bell-banner').style.display = 'none';
+  document.getElementById('sub-json').textContent = subJSON;
+  document.getElementById('sub-json-settings').textContent = subJSON;
+  document.getElementById('sub-json-row').style.display = 'flex';
+  checkPushState();
+  showSubJSON();
+}
+
+function showSubJSON() {
+  const s = document.getElementById('sub-box');
+  const j = localStorage.getItem('push_sub') || '';
+  document.getElementById('sub-json').textContent = j;
+  s.style.display = s.style.display === 'block' ? 'none' : 'block';
 }
 
 function toggleNotifications() {
-  const box = document.getElementById('sub-box');
-  if (box.style.display === 'block') {
-    box.style.display = 'none';
-  } else if (localStorage.getItem('push_sub')) {
-    document.getElementById('sub-json').textContent = localStorage.getItem('push_sub');
-    box.style.display = 'block';
-  } else {
-    enableNotifications();
-  }
+  if (localStorage.getItem('push_sub')) showSubJSON();
+  else enableNotifications();
 }
 
 function copySubJSON() {
-  const txt = document.getElementById('sub-json').textContent;
-  navigator.clipboard.writeText(txt).then(() => {
-    document.getElementById('copy-btn').textContent = '✅ Copied! Send this to Claude.';
-    setTimeout(() => {
-      document.getElementById('copy-btn').textContent = '📋 Copy Subscription JSON';
-    }, 3000);
+  navigator.clipboard.writeText(document.getElementById('sub-json').textContent).then(() => {
+    document.getElementById('copy-btn').textContent = '✅ Copied!';
+    setTimeout(() => document.getElementById('copy-btn').textContent = '📋 Copy Subscription JSON', 2500);
+  });
+}
+function copySubJSONSettings() {
+  navigator.clipboard.writeText(document.getElementById('sub-json-settings').textContent).then(() => {
+    showSyncStatus('✅ Copied to clipboard', true);
   });
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ════════════════════════════════════════════════════════════════
 let currentTab = 'ipo';
+const TABS = ['ipo','signals','watchlist','settings'];
 
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t, i) =>
-    t.classList.toggle('active', ['ipo','signals','watchlist'][i] === tab));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + tab).classList.add('active');
+  TABS.forEach(t => {
+    document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+    document.getElementById('nav-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'watchlist') renderWatchlistPanel();
+}
+
+// ════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function relTime(iso) {
-  const d = Math.floor((Date.now() - new Date(iso)) / 86400000);
-  const h = Math.floor((Date.now() - new Date(iso)) / 3600000);
-  const m = Math.floor((Date.now() - new Date(iso)) / 60000);
+  const ms = Date.now() - new Date(iso);
+  const m = Math.floor(ms/60000), h = Math.floor(ms/3600000), d = Math.floor(ms/86400000);
   return d > 0 ? d+'d ago' : h > 0 ? h+'h ago' : m > 0 ? m+'m ago' : 'just now';
 }
 
-function sigClass(s) {
+function initials(name) {
+  return name.replace(/[^a-zA-Z\s]/g,'').trim()
+    .split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase() || '?';
+}
+
+// Deterministic color from string
+const AVATAR_COLORS = [
+  ['#00C896','#003d30'], ['#4B84FF','#0d1f4a'], ['#B57BFF','#2a1a4a'],
+  ['#FF5252','#4a0d0d'], ['#F5A623','#4a3000'], ['#00BFFF','#00304a'],
+  ['#FF6B9D','#4a0d28'], ['#00E5D0','#003a38'],
+];
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+function makeAvatar(name, sub) {
+  const [fg, bg] = avatarColor(sub || name);
+  return `<div class="avatar" style="background:${bg};color:${fg}">${esc(initials(sub||name))}</div>`;
+}
+
+function sigTagClass(s) {
   s = s.toLowerCase();
   return s.includes('volume') ? 'sig-vol' : s.includes('rsi') ? 'sig-rsi' : 'sig-golden';
 }
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// ════════════════════════════════════════════════════════════════
+// IPO DATE INFO (sourced May 2026)
+// ════════════════════════════════════════════════════════════════
+const IPO_DATE_INFO = {
+  'Anthropic':                    {s:'expected', d:'H2 2026',       n:'Oct 2026 rumoured · ~$900B valuation'},
+  'Databricks':                   {s:'expected', d:'H2 2026',       n:'No S-1 filed · only profitable AI IPO in pipeline'},
+  'SpaceX':                       {s:'expected', d:'Jun 12, 2026',  n:'Nasdaq: SPCX · targeting ~$1.75T valuation'},
+  'Space Exploration Technologies':{s:'expected',d:'Jun 12, 2026',  n:'Same entity as SpaceX (SPCX)'},
+  'Starlink':                     {s:'expected', d:'Jun 12, 2026',  n:'SpaceX subsidiary — listed via SPCX'},
+  'Cerebras Systems':             {s:'listed',   d:'May 14, 2026',  n:'Nasdaq: CBRS · IPO @ $185 · +68% on debut day'},
+  'OpenAI':                       {s:'expected', d:'Q4 2026',       n:'~$852B target valuation · raising $60B+'},
+  'Stripe':                       {s:'expected', d:'H2 2026',       n:'No S-1 filed · speculative Sep 2026'},
+  'Klarna':                       {s:'listed',   d:'Sep 10, 2025',  n:'NYSE: KLAR · IPO @ $40 · +15% debut'},
+  'Chime':                        {s:'listed',   d:'Jun 12, 2025',  n:'Nasdaq: CHYM · IPO @ $27/share'},
+  'Anduril':                      {s:'expected', d:'Late 2026',     n:'After Arsenal-1 launch · ~mid-2026 est.'},
+  'Shield AI':                    {s:'expected', d:'2027',          n:'$12.7B valuation · no S-1 filed yet'},
+  'Shein':                        {s:'expected', d:'TBD',           n:'Hong Kong listing planned after US pivot failed'},
+  'Fanatics':                     {s:'tbd',      d:'No plans',      n:'CEO: no near-term IPO pressure'},
+  'Discord':                      {s:'expected', d:'H2 2026',       n:'Confidential S-1 filed Jan 2026 · Goldman + JPM leading'},
+  'Lambda Labs':                  {s:'tbd',      d:'TBD',           n:'No IPO announced'},
+  'Trailblazer':                  {s:'tbd',      d:'TBD',           n:'No IPO announced'},
+  'Averin Capital Acquisition':   {s:'tbd',      d:'TBD',           n:'SPAC — monitoring SEC filings'},
+};
 
-// ── Render: IPO alerts ────────────────────────────────────────────────────────
+const DATE_PILL_CLASS = { listed:'pill-green', expected:'pill-blue', tbd:'pill-muted' };
+const DATE_PILL_ICON  = { listed:'✅ ', expected:'🗓 ', tbd:'— ' };
+
+// ════════════════════════════════════════════════════════════════
+// RENDER: IPO ALERTS
+// ════════════════════════════════════════════════════════════════
 function renderIPO(data) {
   const alerts = data.ipo_alerts || [];
-  document.getElementById('ipo-badge').innerHTML =
-    alerts.length ? `<span class="badge">${alerts.length}</span>` : '';
-  document.getElementById('panel-ipo').innerHTML = alerts.length
-    ? alerts.map(a => `
-        <div class="card">
-          <div class="card-header">
-            <div class="company-name">${esc(a.company)}</div>
-            ${a.ticker ? `<span class="ticker-badge">${esc(a.ticker)}</span>` : ''}
+  const n = alerts.length;
+
+  document.getElementById('ipo-summary').textContent =
+    `${(data.watched_companies||[]).length} companies monitored`;
+  const bs = document.getElementById('ipo-badge-strip');
+  if (n) { bs.textContent = n + ' alert' + (n>1?'s':''); bs.className = 'summary-badge'; }
+  else   { bs.textContent = '0 alerts'; bs.className = 'summary-badge none'; }
+
+  const nb = document.getElementById('nav-badge-ipo');
+  if (n) { nb.textContent = n > 99 ? '99+' : n; nb.style.display = 'block'; }
+  else     nb.style.display = 'none';
+
+  document.getElementById('ipo-list').innerHTML = n
+    ? alerts.map(a => {
+        const [fg, bg] = avatarColor(a.company);
+        return `<div class="row">
+          ${makeAvatar(a.company)}
+          <div class="row-body">
+            <div class="row-name">${esc(a.company)}</div>
+            <div class="row-sub">${esc(a.form)} · ${esc(a.date)} · ${relTime(a.timestamp)}${a.ticker ? ' · <b>'+esc(a.ticker)+'</b>' : ''}</div>
           </div>
-          <div class="card-meta">${esc(a.date)} · ${relTime(a.timestamp)}</div>
-          <span class="ipo-pill">🟢 Open for Trading</span>
-          <a class="ipo-link" href="${esc(a.url)}" target="_blank">View SEC Prospectus →</a>
-        </div>`).join('')
-    : `<div class="empty"><div class="empty-icon">🔍</div>No IPO trading alerts yet.<br>You'll be notified when a tracked company goes live.</div>`;
+          <div class="row-right">
+            <a href="${esc(a.url)}" target="_blank" style="text-decoration:none">
+              <span class="pill pill-green">TRADING ↗</span>
+            </a>
+          </div>
+        </div>`;
+      }).join('')
+    : `<div class="empty">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No IPO alerts yet</div>
+        <div class="empty-sub">You'll be notified when a tracked company files a 424B4 — the day their stock opens for trading.</div>
+      </div>`;
 }
 
-// ── Render: Buy signals ───────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// RENDER: BUY SIGNALS
+// ════════════════════════════════════════════════════════════════
 function renderSignals(data) {
   const sigs = data.buy_signals || [];
-  document.getElementById('sig-badge').innerHTML =
-    sigs.length ? `<span class="badge">${sigs.length}</span>` : '';
-  document.getElementById('panel-signals').innerHTML = sigs.length
-    ? sigs.map(s => `
-        <div class="card">
-          <div class="card-header">
-            <div class="company-name">${esc(s.name)}</div>
-            <span class="ticker-badge">${esc(s.ticker)}</span>
+  const n = sigs.length;
+
+  document.getElementById('sig-summary').textContent =
+    `${Object.keys(data.watched_stocks||{}).length} stocks tracked`;
+  const bs = document.getElementById('sig-badge-strip');
+  if (n) { bs.textContent = n + ' signal' + (n>1?'s':''); bs.className = 'summary-badge'; }
+  else   { bs.textContent = '0 signals'; bs.className = 'summary-badge none'; }
+
+  const nb = document.getElementById('nav-badge-sig');
+  if (n) { nb.textContent = n > 99 ? '99+' : n; nb.style.display = 'block'; }
+  else     nb.style.display = 'none';
+
+  document.getElementById('sig-list').innerHTML = n
+    ? sigs.map(s => {
+        const pos = s.price_chg_pct >= 0;
+        const chgColor = pos ? 'var(--green)' : 'var(--red)';
+        const chgSign  = pos ? '+' : '';
+        return `<div class="row">
+          ${makeAvatar(s.ticker, s.ticker)}
+          <div class="row-body">
+            <div class="row-name">${esc(s.name)} <span style="font-size:12px;color:var(--muted);font-weight:400">${esc(s.ticker)}</span></div>
+            <div class="row-sub" style="margin-top:4px">
+              ${(s.signals||[]).map(sig =>
+                `<span class="sig-tag ${sigTagClass(sig)}">${esc(sig)}</span>`
+              ).join('')}
+            </div>
           </div>
-          <div class="card-meta">${esc(s.date)} · ${relTime(s.timestamp)}</div>
-          <div class="price-row">
-            <div class="stat"><div class="stat-label">Price</div><div class="stat-value">$${s.price}</div></div>
-            <div class="stat"><div class="stat-label">Change</div>
-              <div class="stat-value ${s.price_chg_pct >= 0 ? 'positive' : 'negative'}">
-                ${s.price_chg_pct >= 0 ? '+' : ''}${s.price_chg_pct}%</div></div>
-            <div class="stat"><div class="stat-label">Volume</div><div class="stat-value positive">${s.vol_ratio}×</div></div>
-            <div class="stat"><div class="stat-label">RSI</div><div class="stat-value ${s.rsi >= 70 ? 'positive' : ''}">${s.rsi}</div></div>
+          <div class="row-right">
+            <div class="row-value">$${s.price}</div>
+            <div class="row-change" style="color:${chgColor};font-weight:600">${chgSign}${s.price_chg_pct}%</div>
           </div>
-          <div>${(s.signals||[]).map(sig => `<span class="signal-tag ${sigClass(sig)}">${esc(sig)}</span>`).join('')}</div>
-        </div>`).join('')
-    : `<div class="empty"><div class="empty-icon">📉</div>No buy signals yet.<br>Checked 4× daily for volume surges, RSI &amp; Golden Cross.</div>`;
+        </div>`;
+      }).join('')
+    : `<div class="empty">
+        <div class="empty-icon">📉</div>
+        <div class="empty-title">No buy signals today</div>
+        <div class="empty-sub">Checked 4× daily for volume surges ≥ 2.5×, RSI breakouts and Golden Cross events.</div>
+      </div>`;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── Custom watchlist management ───────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// CUSTOM WATCHLIST (GitHub API sync)
+// ════════════════════════════════════════════════════════════════
+let customData = { ipo_companies:[], stocks:[] };
+let customFileSHA = '';
+let _serverData = {};
 
-// State: custom companies & stocks added by user
-let customData = { ipo_companies: [], stocks: [] };
-let customFileSHA = '';          // GitHub file SHA needed for updates
-let _serverData   = {};          // cached server alerts.json data
-
-// Get GitHub token from localStorage
 function getToken() { return localStorage.getItem('gh_token') || ''; }
 
-// Show a transient status message inside the watchlist panel
 function showSyncStatus(msg, ok) {
   const el = document.getElementById('sync-status');
   if (!el) return;
   el.textContent = msg;
-  el.className = 'sync-status ' + (ok ? 'sync-ok' : 'sync-err');
-  setTimeout(() => { el.className = 'sync-status'; }, 5000);
+  el.className = 'sync-msg ' + (ok ? 'sync-ok' : 'sync-err');
+  setTimeout(() => el.className = 'sync-msg', 5000);
 }
 
-// ── Load custom watches (from repo file + GitHub API for SHA) ─────────────────
 async function fetchCustomWatches() {
-  // Fast path: load from static file served by GitHub Pages
   try {
     const r = await fetch('custom_watches.json?t=' + Date.now());
     if (r.ok) customData = await r.json();
-  } catch (_) {}
-
-  // If token available, also fetch via API to get the SHA (needed for updates)
+  } catch(_){}
   const token = getToken();
   if (token) {
     try {
       const r = await fetch(
         `https://api.github.com/repos/${REPO}/contents/${CUSTOM_PATH}`,
-        { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' } }
+        { headers: { Authorization:`token ${token}`, Accept:'application/vnd.github.v3+json' } }
       );
       if (r.ok) {
-        const meta = await r.json();
-        customFileSHA = meta.sha;
-        customData = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+        const m = await r.json();
+        customFileSHA = m.sha;
+        customData = JSON.parse(atob(m.content.replace(/\n/g,'')));
       }
-    } catch (_) {}
+    } catch(_){}
   }
 }
 
-// ── Save custom watches → GitHub API (or just re-render if no token) ──────────
 async function saveCustomWatches() {
+  renderWatchlistPanel();
   const token = getToken();
-
-  if (!token) {
-    // No token — persist in localStorage as fallback, note that cloud won't track
-    localStorage.setItem('custom_watches_local', JSON.stringify(customData));
-    renderWatchlistPanel();
-    return;
-  }
-
-  renderWatchlistPanel(); // optimistic UI update
-
+  if (!token) { localStorage.setItem('custom_watches_local', JSON.stringify(customData)); return; }
   try {
-    // Build base64 content (btoa needs latin-1, use TextEncoder for UTF-8)
     const jsonStr = JSON.stringify(customData, null, 2);
-    const bytes   = new TextEncoder().encode(jsonStr);
-    const b64     = btoa(String.fromCharCode(...bytes));
-
-    const body = { message: 'chore: update custom watches', content: b64 };
+    const bytes = new TextEncoder().encode(jsonStr);
+    const b64 = btoa(String.fromCharCode(...bytes));
+    const body = { message:'chore: update custom watches', content:b64 };
     if (customFileSHA) body.sha = customFileSHA;
-
     const r = await fetch(
       `https://api.github.com/repos/${REPO}/contents/${CUSTOM_PATH}`,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/vnd.github.v3+json',
-        },
-        body: JSON.stringify(body),
-      }
+      { method:'PUT', headers:{Authorization:`token ${token}`,'Content-Type':'application/json',Accept:'application/vnd.github.v3+json'}, body:JSON.stringify(body) }
     );
-
-    if (r.ok) {
-      const result = await r.json();
-      customFileSHA = result.content.sha;
-      showSyncStatus('✅ Saved — scanner picks up on next run', true);
-    } else {
-      const err = await r.json().catch(() => ({}));
-      showSyncStatus(`❌ GitHub error: ${err.message || r.status}`, false);
-    }
-  } catch (e) {
-    showSyncStatus(`❌ Network error`, false);
-  }
+    if (r.ok) { const res = await r.json(); customFileSHA = res.content.sha; showSyncStatus('✅ Synced — scanner picks up on next run', true); }
+    else { const e = await r.json().catch(()=>({})); showSyncStatus(`❌ ${e.message||r.status}`, false); }
+  } catch(e) { showSyncStatus('❌ Network error', false); }
 }
 
-// ── Add / remove helpers ──────────────────────────────────────────────────────
 function addIPOCompany() {
-  const input = document.getElementById('add-co-input');
-  const name  = input.value.trim();
+  const el = document.getElementById('add-co-input');
+  const name = el.value.trim();
   if (!name) return;
-  if (customData.ipo_companies.includes(name)) {
-    showSyncStatus('Already in your watchlist', false); return;
-  }
+  if (customData.ipo_companies.includes(name)) { showSyncStatus('Already in list', false); return; }
   customData.ipo_companies.push(name);
-  input.value = '';
+  el.value = '';
   saveCustomWatches();
 }
 
 function removeIPOCompany(btn) {
-  const name = btn.dataset.name;
-  customData.ipo_companies = customData.ipo_companies.filter(c => c !== name);
+  customData.ipo_companies = customData.ipo_companies.filter(c => c !== btn.dataset.name);
   saveCustomWatches();
 }
 
 function addStock() {
-  const nameEl   = document.getElementById('add-st-name');
-  const tickerEl = document.getElementById('add-st-ticker');
-  const name     = nameEl.value.trim();
-  const ticker   = tickerEl.value.trim().toUpperCase();
-  if (!name || !ticker) { showSyncStatus('Enter both company name and ticker', false); return; }
-  if (customData.stocks.find(s => s.ticker === ticker)) {
-    showSyncStatus(`${ticker} already in watchlist`, false); return;
-  }
-  customData.stocks.push({ name, ticker });
-  nameEl.value = ''; tickerEl.value = '';
+  const ne = document.getElementById('add-st-name');
+  const te = document.getElementById('add-st-ticker');
+  const name = ne.value.trim(), ticker = te.value.trim().toUpperCase();
+  if (!name || !ticker) { showSyncStatus('Enter both name and ticker', false); return; }
+  if (customData.stocks.find(s => s.ticker === ticker)) { showSyncStatus(`${ticker} already in list`, false); return; }
+  customData.stocks.push({name, ticker});
+  ne.value = ''; te.value = '';
   saveCustomWatches();
 }
 
 function removeStock(btn) {
-  const ticker = btn.dataset.ticker;
-  customData.stocks = customData.stocks.filter(s => s.ticker !== ticker);
+  customData.stocks = customData.stocks.filter(s => s.ticker !== btn.dataset.ticker);
   saveCustomWatches();
 }
 
-// ── GitHub token management ───────────────────────────────────────────────────
 async function saveToken() {
   const input = document.getElementById('gh-token-input');
   const token = input.value.trim();
   if (!token || token.startsWith('•')) { showSyncStatus('Enter a valid token first', false); return; }
   localStorage.setItem('gh_token', token);
   input.value = '•'.repeat(40);
-  // Re-fetch to grab SHA
+  document.getElementById('clear-token-btn').style.display = 'inline-block';
+  document.getElementById('token-status').textContent = 'Token saved — sync active';
   await fetchCustomWatches();
   renderWatchlistPanel();
   showSyncStatus('✅ Token saved — sync enabled', true);
@@ -638,210 +935,181 @@ async function saveToken() {
 function clearToken() {
   localStorage.removeItem('gh_token');
   customFileSHA = '';
-  renderWatchlistPanel();
+  document.getElementById('gh-token-input').value = '';
+  document.getElementById('clear-token-btn').style.display = 'none';
+  document.getElementById('token-status').textContent = 'Enter a token to sync custom watchlist to the cloud scanner';
+  showSyncStatus('Token removed', true);
 }
 
-// ── Anticipated IPO dates (researched May 2026) ───────────────────────────────
-// status: "listed" = already public | "expected" = date known/rumoured | "tbd" = no date
-const IPO_DATE_INFO = {
-  "Anthropic":                    { status:"expected", date:"H2 2026",        note:"Oct 2026 rumoured · ~$900B valuation" },
-  "Databricks":                   { status:"expected", date:"H2 2026",        note:"No S-1 filed · only profitable AI IPO" },
-  "SpaceX":                       { status:"expected", date:"Jun 12, 2026",   note:"Nasdaq: SPCX · ~$1.75T valuation" },
-  "Space Exploration Technologies":{ status:"expected", date:"Jun 12, 2026",  note:"Same entity as SpaceX (SPCX)" },
-  "Starlink":                     { status:"expected", date:"Jun 12, 2026",   note:"SpaceX subsidiary — listed via SPCX" },
-  "Cerebras Systems":             { status:"listed",   date:"May 14, 2026",   note:"Nasdaq: CBRS · IPO @ $185 · +68% debut" },
-  "OpenAI":                       { status:"expected", date:"Q4 2026",        note:"~$852B target valuation" },
-  "Stripe":                       { status:"expected", date:"H2 2026",        note:"No S-1 filed · speculative Sep 2026" },
-  "Klarna":                       { status:"listed",   date:"Sep 10, 2025",   note:"NYSE: KLAR · IPO @ $40 · +15% debut" },
-  "Chime":                        { status:"listed",   date:"Jun 12, 2025",   note:"Nasdaq: CHYM · IPO @ $27/share" },
-  "Anduril":                      { status:"expected", date:"Late 2026",      note:"Post Arsenal-1 launch · ~mid-2026" },
-  "Shield AI":                    { status:"expected", date:"2027",           note:"$12.7B valuation · no S-1 filed" },
-  "Shein":                        { status:"expected", date:"TBD",            note:"Hong Kong listing planned" },
-  "Fanatics":                     { status:"tbd",      date:"No plans",       note:"CEO: no near-term IPO" },
-  "Discord":                      { status:"expected", date:"H2 2026",        note:"Confidential S-1 filed Jan 2026" },
-  "Lambda Labs":                  { status:"tbd",      date:"TBD",            note:"No IPO announced" },
-  "Trailblazer":                  { status:"tbd",      date:"TBD",            note:"No IPO announced" },
-  "Averin Capital Acquisition":   { status:"tbd",      date:"TBD",            note:"SPAC — monitoring SEC filings" },
-};
-
-// ── Render: Watchlist panel ───────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// RENDER: WATCHLIST
+// ════════════════════════════════════════════════════════════════
 function renderWatchlist(data) {
   _serverData = data;
-  renderWatchlistPanel();
+  if (currentTab === 'watchlist') renderWatchlistPanel();
 }
 
 function renderWatchlistPanel() {
   const cos = _serverData.watched_companies || [];
   const sts = _serverData.watched_stocks   || {};
-  const token = getToken();
-
   const customCos = customData.ipo_companies || [];
-  const customSts = customData.stocks        || [];
+  const customSts = customData.stocks       || [];
 
-  // Build custom company grid
-  const customCoGrid = customCos.length
-    ? `<div class="watch-grid">${customCos.map(c => `
-        <div class="watch-item custom">
-          <div><div>${esc(c)}</div><div class="custom-label">custom</div></div>
-          <button class="del-btn" data-name="${esc(c)}" onclick="removeIPOCompany(this)" title="Remove">×</button>
-        </div>`).join('')}</div>`
-    : `<div class="empty-custom">No custom companies yet — add one above</div>`;
-
-  // Build custom stock grid
-  const customStGrid = customSts.length
-    ? `<div class="watch-grid">${customSts.map(s => `
-        <div class="watch-item custom">
-          <div>
-            <div>${esc(s.name)}</div>
-            <div class="wt">${esc(s.ticker)}</div>
-            <div class="custom-label">custom</div>
+  // Custom IPO companies section
+  const customCosHTML = customCos.length
+    ? customCos.map(c => `
+        <div class="row">
+          ${makeAvatar(c)}
+          <div class="row-body">
+            <div class="row-name">${esc(c)}</div>
+            <div class="row-sub" style="color:var(--amber)">Custom · monitored next scan</div>
           </div>
-          <button class="del-btn" data-ticker="${esc(s.ticker)}" onclick="removeStock(this)" title="Remove">×</button>
-        </div>`).join('')}</div>`
-    : `<div class="empty-custom">No custom stocks yet — add one above</div>`;
+          <button class="row-del" data-name="${esc(c)}" onclick="removeIPOCompany(this)" title="Remove">×</button>
+        </div>`).join('')
+    : `<div class="empty-custom">None added yet — type above and tap Add</div>`;
 
-  // Default IPO companies with anticipated dates
-  const defaultCoGrid = cos.length
-    ? `<div class="legend-row">
-        <span class="legend-item"><span class="date-pill listed" style="font-size:10px;padding:2px 7px">May 14</span> Already public</span>
-        <span class="legend-item"><span class="date-pill expected" style="font-size:10px;padding:2px 7px">Q4 2026</span> Anticipated</span>
-        <span class="legend-item"><span class="date-pill tbd" style="font-size:10px;padding:2px 7px">TBD</span> No date yet</span>
-      </div>` +
-      cos.map(c => {
-        const info = IPO_DATE_INFO[c] || { status:'tbd', date:'TBD', note:'' };
-        return `<div class="watch-date-item">
-          <div>
-            <div class="wdi-name">${esc(c)}</div>
-            ${info.note ? `<div class="wdi-note">${esc(info.note)}</div>` : ''}
+  // Custom stocks section
+  const customStsHTML = customSts.length
+    ? customSts.map(s => `
+        <div class="row">
+          ${makeAvatar(s.ticker, s.ticker)}
+          <div class="row-body">
+            <div class="row-name">${esc(s.name)}</div>
+            <div class="row-sub" style="color:var(--amber)">${esc(s.ticker)} · Custom signal watch</div>
           </div>
-          <span class="date-pill ${info.status}">${esc(info.date)}</span>
+          <button class="row-del" data-ticker="${esc(s.ticker)}" onclick="removeStock(this)" title="Remove">×</button>
+        </div>`).join('')
+    : `<div class="empty-custom">None added yet — type above and tap Add</div>`;
+
+  // Default IPO companies with dates
+  const defaultCosHTML = cos.length
+    ? cos.map(c => {
+        const info = IPO_DATE_INFO[c] || {s:'tbd', d:'TBD', n:''};
+        const pillClass = DATE_PILL_CLASS[info.s] || 'pill-muted';
+        return `<div class="row">
+          ${makeAvatar(c)}
+          <div class="row-body">
+            <div class="row-name">${esc(c)}</div>
+            ${info.n ? `<div class="row-sub">${esc(info.n)}</div>` : ''}
+          </div>
+          <div class="row-right" style="text-align:right">
+            <span class="pill ${pillClass}" style="font-size:11px">${esc(info.d)}</span>
+          </div>
         </div>`;
       }).join('')
-    : `<div class="empty-custom">Loading…</div>`;
+    : '';
 
-  const defaultStGrid = Object.keys(sts).length
-    ? `<div class="watch-grid">${Object.entries(sts).map(([n,t]) =>
-        `<div class="watch-item">${esc(n)}<div class="wt">${esc(t)}</div></div>`).join('')}</div>`
-    : `<div class="empty-custom">Loading…</div>`;
+  // Default stocks with tickers
+  const defaultStsHTML = Object.entries(sts).length
+    ? Object.entries(sts).map(([name, ticker]) => `
+        <div class="row">
+          ${makeAvatar(ticker, ticker)}
+          <div class="row-body">
+            <div class="row-name">${esc(name)}</div>
+            <div class="row-sub">${esc(ticker)} · Volume, RSI &amp; Golden Cross</div>
+          </div>
+          <span class="pill pill-blue" style="font-size:11px">${esc(ticker)}</span>
+        </div>`).join('')
+    : '';
 
-  // Token section
-  const tokenSection = token
-    ? `<div class="token-card">
-        <h3>⚙️ Cloud Sync</h3>
-        <div class="token-note">
-          GitHub token saved — custom additions will be monitored by the cloud scanner on the next scheduled run.
-        </div>
-        <button class="clear-token-btn" onclick="clearToken()">Remove saved token</button>
-        <div id="sync-status" class="sync-status"></div>
-      </div>`
-    : `<div class="token-card">
-        <h3>⚙️ Enable Cloud Sync (optional)</h3>
-        <div class="token-note">
-          Without a token your additions are visible here but <b>not monitored by the cloud scanner</b>.
-          Add a GitHub token to sync — the scanner will then watch your custom companies too.<br><br>
-          <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=IPO+Tracker+Sync" target="_blank">Create a token (public_repo scope) →</a>
-        </div>
-        <div class="add-row">
-          <input id="gh-token-input" class="add-input" type="password" placeholder="ghp_…"
-                 onkeydown="if(event.key==='Enter')saveToken()">
-          <button class="add-btn" onclick="saveToken()">Save</button>
-        </div>
-        <div id="sync-status" class="sync-status"></div>
-      </div>`;
+  document.getElementById('watchlist-content').innerHTML = `
 
-  document.getElementById('panel-watchlist').innerHTML = `
-
-    <!-- ── Custom IPO companies ── -->
-    <div class="watch-section">
-      <div class="section-header">
-        <h3>➕ Add IPO Company${customCos.length ? ` (${customCos.length})` : ''}</h3>
-      </div>
+    <!-- Add custom IPO company -->
+    <div class="add-section">
+      <div class="add-section-title">➕ Add IPO Company to Watch</div>
       <div class="add-row">
-        <input id="add-co-input" class="add-input" placeholder="e.g. Stripe, Discord, Reddit…"
+        <input id="add-co-input" class="add-input" placeholder="Company name (e.g. Reddit, Figma…)"
                onkeydown="if(event.key==='Enter')addIPOCompany()">
         <button class="add-btn" onclick="addIPOCompany()">Add</button>
       </div>
-      ${customCoGrid}
+      ${customCosHTML}
     </div>
 
-    <!-- ── Custom stocks ── -->
-    <div class="watch-section">
-      <div class="section-header">
-        <h3>➕ Add Stock for Signals${customSts.length ? ` (${customSts.length})` : ''}</h3>
-      </div>
-      <div class="add-row">
+    <!-- Add custom stock -->
+    <div class="add-section">
+      <div class="add-section-title">➕ Add Stock for Buy Signals</div>
+      <div class="add-row" style="margin-bottom:8px">
         <input id="add-st-name" class="add-input" placeholder="Company name" style="flex:2"
                onkeydown="if(event.key==='Enter')document.getElementById('add-st-ticker').focus()">
         <input id="add-st-ticker" class="add-input" placeholder="Ticker" style="flex:1;text-transform:uppercase"
                onkeydown="if(event.key==='Enter')addStock()">
         <button class="add-btn" onclick="addStock()">Add</button>
       </div>
-      ${customStGrid}
+      ${customStsHTML}
     </div>
 
-    <!-- ── Default IPO watch ── -->
-    <div class="watch-section">
-      <h3>📋 Default IPO Watch — ${cos.length} companies</h3>
-      ${defaultCoGrid}
+    <!-- Default IPO watch with dates -->
+    <div class="section-head">
+      📋 IPO Watch — ${cos.length} companies
     </div>
-
-    <!-- ── Default stocks ── -->
-    <div class="watch-section">
-      <h3>📈 Default Buy Signal Watch — ${Object.keys(sts).length} stocks</h3>
-      ${defaultStGrid}
+    <div class="legend">
+      <span class="legend-item"><span class="pill pill-green" style="font-size:10px;padding:2px 7px">Listed</span> Already public</span>
+      <span class="legend-item"><span class="pill pill-blue" style="font-size:10px;padding:2px 7px">Date</span> Anticipated</span>
+      <span class="legend-item"><span class="pill pill-muted" style="font-size:10px;padding:2px 7px">TBD</span> No date yet</span>
     </div>
+    ${defaultCosHTML}
 
-    <!-- ── Signal thresholds ── -->
-    <div class="card" style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:16px">
-      <b style="color:var(--text)">Signal thresholds</b><br>
-      🔥 Volume ≥ 2.5× 20-day avg + Price ≥ +4%<br>
-      ⚡ RSI ≥ 68 with volume surge ≥ 1.5×<br>
-      ⭐ 50-day MA crosses above 200-day MA (Golden Cross)
+    <!-- Default signal stocks -->
+    <div class="section-head" style="margin-top:8px">
+      📈 Buy Signal Watch — ${Object.keys(sts).length} stocks
     </div>
+    ${defaultStsHTML}
 
-    ${tokenSection}`;
+    <div class="status-tick" style="margin-top:4px">
+      Tap <strong>⚙️ Settings</strong> to enable cloud sync for custom additions
+    </div>`;
 }
 
-// ── Data loading ──────────────────────────────────────────────────────────────
-let lastKnownIPO = 0, lastKnownSig = 0;
+// ════════════════════════════════════════════════════════════════
+// LOAD DATA
+// ════════════════════════════════════════════════════════════════
+let lastIPO = 0, lastSig = 0;
 
 async function loadData() {
-  document.getElementById('ri').classList.add('spin');
+  const ri = document.getElementById('ri');
+  ri.classList.add('spin');
   try {
-    const res = await fetch('alerts.json?t=' + Date.now());
-    if (!res.ok) throw new Error();
-    const data = await res.json();
+    const r = await fetch('alerts.json?t=' + Date.now());
+    if (!r.ok) throw new Error();
+    const data = await r.json();
 
-    const newIPO = (data.ipo_alerts||[]).length;
-    const newSig = (data.buy_signals||[]).length;
-    if ((newIPO > lastKnownIPO || newSig > lastKnownSig) && (lastKnownIPO + lastKnownSig > 0)) {
-      playAlertSound();
-    }
-    lastKnownIPO = newIPO; lastKnownSig = newSig;
+    const nIPO = (data.ipo_alerts||[]).length;
+    const nSig = (data.buy_signals||[]).length;
+    if ((nIPO > lastIPO || nSig > lastSig) && (lastIPO + lastSig > 0)) playAlertSound();
+    lastIPO = nIPO; lastSig = nSig;
 
     renderIPO(data);
     renderSignals(data);
     renderWatchlist(data);
 
-    const lu = data.last_updated
-      ? new Date(data.last_updated).toLocaleString() : '—';
-    document.getElementById('status-bar').innerHTML =
-      `<span class="dot"></span>Updated: ${lu} UTC · Runs 4× daily`;
+    const lu = data.last_updated ? new Date(data.last_updated).toLocaleString() : '—';
+    document.getElementById('last-updated-row').textContent = lu + ' UTC';
   } catch {
-    document.getElementById('status-bar').textContent = 'Error loading — tap ↻ to retry';
+    /* silent fail, keep showing last data */
   } finally {
-    document.getElementById('ri').classList.remove('spin');
+    ri.classList.remove('spin');
   }
 }
 
-// ── Initialise ────────────────────────────────────────────────────────────────
-fetchCustomWatches().then(() => {
-  // Re-render watchlist after custom data loads (if server data already arrived)
-  if (Object.keys(_serverData).length) renderWatchlistPanel();
-});
+// ════════════════════════════════════════════════════════════════
+// SETTINGS: token UI init
+// ════════════════════════════════════════════════════════════════
+function initSettingsUI() {
+  const token = getToken();
+  if (token) {
+    document.getElementById('gh-token-input').value = '•'.repeat(40);
+    document.getElementById('clear-token-btn').style.display = 'inline-block';
+    document.getElementById('token-status').textContent = 'Token saved — sync active';
+  }
+}
 
+// ════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════
+initSettingsUI();
+fetchCustomWatches().then(() => { if (currentTab === 'watchlist') renderWatchlistPanel(); });
 loadData();
-setInterval(loadData, 5 * 60 * 1000);   // auto-refresh every 5 min
+setInterval(loadData, 5 * 60 * 1000);
 </script>
 </body>
 </html>
