@@ -4,6 +4,19 @@
     {
       "name": "Astera Labs",
       "ticker": "ALAB",
+      "price": 306.88,
+      "price_chg_pct": 3.04,
+      "vol_ratio": 1.05,
+      "rsi": 78.4,
+      "signals": [
+        "Golden Cross \u2014 50MA crossed above 200MA"
+      ],
+      "date": "2026-05-23",
+      "timestamp": "2026-05-23T11:51:38.722932"
+    },
+    {
+      "name": "Astera Labs",
+      "ticker": "ALAB",
       "price": 304.76,
       "price_chg_pct": 2.32,
       "vol_ratio": 0.64,
@@ -15,7 +28,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-05-22T20:26:35Z",
+  "last_updated": "2026-05-23T11:51:40Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
