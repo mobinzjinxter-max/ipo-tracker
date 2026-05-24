@@ -11,6 +11,19 @@
       "signals": [
         "Golden Cross \u2014 50MA crossed above 200MA"
       ],
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T09:12:26.505499"
+    },
+    {
+      "name": "Astera Labs",
+      "ticker": "ALAB",
+      "price": 306.88,
+      "price_chg_pct": 3.04,
+      "vol_ratio": 1.05,
+      "rsi": 78.4,
+      "signals": [
+        "Golden Cross \u2014 50MA crossed above 200MA"
+      ],
       "date": "2026-05-23",
       "timestamp": "2026-05-23T11:51:38.722932"
     },
@@ -28,7 +41,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-05-23T19:59:08Z",
+  "last_updated": "2026-05-24T09:12:28Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
