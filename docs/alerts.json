@@ -2,6 +2,19 @@
   "ipo_alerts": [],
   "buy_signals": [
     {
+      "name": "Credo Technology",
+      "ticker": "CRDO",
+      "price": 234.32,
+      "price_chg_pct": 5.42,
+      "vol_ratio": 1.83,
+      "rsi": 74.0,
+      "signals": [
+        "RSI momentum breakout (RSI 74, vol 1.8x)"
+      ],
+      "date": "2026-06-09",
+      "timestamp": "2026-06-09T20:52:14.790908"
+    },
+    {
       "name": "Astera Labs",
       "ticker": "ALAB",
       "price": 306.88,
@@ -67,7 +80,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-06-09T17:16:12Z",
+  "last_updated": "2026-06-09T20:52:15Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
