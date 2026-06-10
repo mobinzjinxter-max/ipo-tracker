@@ -4,6 +4,19 @@
     {
       "name": "Credo Technology",
       "ticker": "CRDO",
+      "price": NaN,
+      "price_chg_pct": NaN,
+      "vol_ratio": 1.85,
+      "rsi": 71.5,
+      "signals": [
+        "RSI momentum breakout (RSI 71, vol 1.8x)"
+      ],
+      "date": "2026-06-10",
+      "timestamp": "2026-06-10T10:45:58.769648"
+    },
+    {
+      "name": "Credo Technology",
+      "ticker": "CRDO",
       "price": 234.32,
       "price_chg_pct": 5.42,
       "vol_ratio": 1.83,
@@ -80,7 +93,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-06-09T20:52:15Z",
+  "last_updated": "2026-06-10T10:45:59Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
