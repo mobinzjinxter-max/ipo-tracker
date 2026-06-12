@@ -1,5 +1,14 @@
 {
-  "ipo_alerts": [],
+  "ipo_alerts": [
+    {
+      "company": "SPACE EXPLORATION TECHNOLOGIES CORP",
+      "ticker": "SPCX",
+      "form": "424B4",
+      "date": "2026-06-12",
+      "url": "https://www.sec.gov/Archives/edgar/data/1181412/000162828026042639/",
+      "timestamp": "2026-06-12T10:55:33.694464"
+    }
+  ],
   "buy_signals": [
     {
       "name": "Credo Technology",
@@ -106,7 +115,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-06-11T21:10:45Z",
+  "last_updated": "2026-06-12T10:55:37Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
