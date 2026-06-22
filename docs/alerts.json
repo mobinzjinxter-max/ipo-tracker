@@ -20,6 +20,19 @@
       "signals": [
         "Volume surge 3.7x + Price +11.3%"
       ],
+      "date": "2026-06-22",
+      "timestamp": "2026-06-22T12:39:50.048057"
+    },
+    {
+      "name": "Astera Labs",
+      "ticker": "ALAB",
+      "price": 417.07,
+      "price_chg_pct": 11.31,
+      "vol_ratio": 3.71,
+      "rsi": 62.4,
+      "signals": [
+        "Volume surge 3.7x + Price +11.3%"
+      ],
       "date": "2026-06-21",
       "timestamp": "2026-06-21T10:23:49.854933"
     },
@@ -167,7 +180,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-06-21T20:20:02Z",
+  "last_updated": "2026-06-22T12:39:51Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
