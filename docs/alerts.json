@@ -20,6 +20,19 @@
       "signals": [
         "Volume surge 2.5x + Price +14.8%"
       ],
+      "date": "2026-08-09",
+      "timestamp": "2026-08-09T07:42:11.848535"
+    },
+    {
+      "name": "Oklo",
+      "ticker": "OKLO",
+      "price": 48.42,
+      "price_chg_pct": 14.77,
+      "vol_ratio": 2.54,
+      "rsi": 60.7,
+      "signals": [
+        "Volume surge 2.5x + Price +14.8%"
+      ],
       "date": "2026-08-08",
       "timestamp": "2026-08-08T07:38:13.759246"
     },
@@ -206,7 +219,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-08-08T19:19:24Z",
+  "last_updated": "2026-08-09T07:42:11Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
