@@ -11,6 +11,19 @@
   ],
   "buy_signals": [
     {
+      "name": "Oklo",
+      "ticker": "OKLO",
+      "price": 23.55,
+      "price_chg_pct": 22.66,
+      "vol_ratio": 2.65,
+      "rsi": 38.6,
+      "signals": [
+        "Volume surge 2.7x + Price +22.7%"
+      ],
+      "date": "2026-11-07",
+      "timestamp": "2026-11-07T13:37:26.355912"
+    },
+    {
       "name": "NuScale Power",
       "ticker": "SMR",
       "price": 11.18,
@@ -284,7 +297,7 @@
       "timestamp": "2026-05-22T17:01:01.526053"
     }
   ],
-  "last_updated": "2026-11-06T20:38:11Z",
+  "last_updated": "2026-11-07T13:37:26Z",
   "watched_companies": [
     "Anthropic",
     "Databricks",
